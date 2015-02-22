@@ -1,7 +1,5 @@
 package com.github.bmsantos.core.cola.config;
 
-import static java.io.File.separator;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -20,7 +18,7 @@ public enum ConfigurationManager {
     public void loadProperties(final String name) {
         InputStream in = null;
         try {
-            in = ConfigurationManager.class.getResourceAsStream(separator + name);
+            in = ConfigurationManager.class.getResourceAsStream("/" + name);
             props.load(in);
             in.close();
         } catch (final IOException e) {
