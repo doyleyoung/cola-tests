@@ -1,0 +1,5 @@
+Feature: Load gherkin feature
+Scenario: Should have gherkin scenario steps
+Given A
+When B
+Then D
