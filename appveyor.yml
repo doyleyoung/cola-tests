@@ -22,8 +22,8 @@ install:
   #- cmd: cinst maven
   - cmd: echo %cd%
   - cmd: dir
-  - cmd: dir C:\projects\cola-maven-plugin\apache-maven-3.2.5
-  - cmd: set M2_HOME=C:\projects\cola-maven-plugin\apache-maven-3.2.5
+  - cmd: dir C:\projects\cola-tests\apache-maven-3.2.5
+  - cmd: set M2_HOME=C:\projects\cola-tests\apache-maven-3.2.5
   #- cmd: set MAVEN_OPTS="-Xms256m -Xmx512m"
   - cmd: set PATH=%M2_HOME%\bin;%PATH%
 before_build:
