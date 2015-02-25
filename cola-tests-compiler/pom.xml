@@ -126,8 +126,8 @@
     </build>
 
     <scm>
-        <url>git@github.com:bmsantos/cola-maven-plugin.git</url>
-        <connection>scm:git:git@github.com:bmsantos/cola-maven-plugin.git</connection>
+        <url>git@github.com:bmsantos/cola-tests.git</url>
+        <connection>scm:git:git@github.com:bmsantos/cola-tests.git</connection>
         <developerConnection>scm:git:git@github.com:bmsantos/cola-maven-plugin.git</developerConnection>
     </scm>
 </project>
