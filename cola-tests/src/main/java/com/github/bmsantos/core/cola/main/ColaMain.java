@@ -1,3 +1,18 @@
+/*
+ * Copyright 2001-2005 The Apache Software Foundation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.github.bmsantos.core.cola.main;
 
 import static com.github.bmsantos.core.cola.config.ConfigurationManager.config;
@@ -35,13 +50,13 @@ public class ColaMain {
 
     private IColaProvider provider;
     private String ideBaseClass;
-    private String ideBaseClassTest;
+    private String ideTestMethod;
 
     private List<String> failures;
 
-    public ColaMain(final String ideBaseClass, final String ideBaseClassTest) {
+    public ColaMain(final String ideBaseClass, final String ideTestMethod) {
         this.ideBaseClass = ideBaseClass;
-        this.ideBaseClassTest = ideBaseClassTest;
+        this.ideTestMethod = ideTestMethod;
     }
 
     public List<String> getFailures() {
@@ -104,7 +119,7 @@ public class ColaMain {
         ideBaseClass = binaryToOsClass(ideBaseClass);
 
         final ClassWriter cw = new ClassWriter(COMPUTE_MAXS);
-        final MethodRemoverClassVisitor remover = new MethodRemoverClassVisitor(ASM4, cw, ideBaseClassTest);
+        final MethodRemoverClassVisitor remover = new MethodRemoverClassVisitor(ASM4, cw, ideTestMethod);
 
         processClass(ideBaseClass, cw, remover);
 
@@ -112,9 +127,9 @@ public class ColaMain {
     }
 
     private boolean isValidIdeBaseClass() {
-        if (!isSet(ideBaseClassTest)) {
+        if (!isSet(ideTestMethod)) {
             log.warn(config.warn("missing.ide.test"));
-            ideBaseClassTest = config.getProperty("default.ide.test");
+            ideTestMethod = config.getProperty("default.ide.test");
         }
 
         if (binaryFileExists(provider.getTargetDirectory(), ideBaseClass)) {
@@ -146,9 +161,8 @@ public class ColaMain {
         classReader.accept(classVisitor, 0);
 
         final File file = new File(filePath);
-        final DataOutputStream dout = new DataOutputStream(new FileOutputStream(file));
-
-        dout.write(cw.toByteArray());
-        dout.close();
+        try (final DataOutputStream dout = new DataOutputStream(new FileOutputStream(file))) {
+            dout.write(cw.toByteArray());
+        }
     }
 }
