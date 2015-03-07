@@ -3,8 +3,8 @@ package com.github.bmsantos.core.cola.main;
 import static com.github.bmsantos.core.cola.config.ConfigurationManager.config;
 import static java.io.File.separator;
 import static java.lang.String.format;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -29,7 +29,6 @@ import uk.org.lidalia.slf4jtest.TestLoggerFactory;
 import com.codeaffine.test.ConditionalIgnoreRule;
 import com.codeaffine.test.ConditionalIgnoreRule.ConditionalIgnore;
 import com.github.bmsantos.core.cola.exceptions.ColaExecutionException;
-import com.github.bmsantos.core.cola.main.ColaMain;
 import com.github.bmsantos.core.cola.provider.IColaProvider;
 import com.github.bmsantos.core.cola.utils.RunningOnWindows;
 

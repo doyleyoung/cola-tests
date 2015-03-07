@@ -1,9 +1,9 @@
 package com.github.bmsantos.core.cola.formatter;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import gherkin.formatter.model.Step;
 
@@ -11,9 +11,6 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import com.github.bmsantos.core.cola.formatter.FeatureDetails;
-import com.github.bmsantos.core.cola.formatter.FeatureFormatter;
 
 public class FeatureFormatterExamplesTest {
 
