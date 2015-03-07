@@ -15,6 +15,7 @@
  */
 package com.github.bmsantos.core.cola.injector;
 
+import static com.github.bmsantos.core.cola.filters.TagFilter.filterTags;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
@@ -59,7 +60,7 @@ public class InjectorClassVisitor extends ClassVisitor {
 
     @Override
     public void visitEnd() {
-        for (final FeatureDetails feature : features) {
+        for (final FeatureDetails feature : filterTags(features)) {
             injectTestMethod(feature);
         }
         super.visitEnd();
