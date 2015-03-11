@@ -2,6 +2,7 @@ package com.github.bmsantos.core.cola.formatter;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
@@ -10,16 +11,16 @@ import gherkin.formatter.model.Comment;
 import gherkin.formatter.model.Examples;
 import gherkin.formatter.model.ExamplesTableRow;
 import gherkin.formatter.model.Step;
+import gherkin.formatter.model.Tag;
 import gherkin.formatter.model.TagStatement;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import com.github.bmsantos.core.cola.formatter.ScenarioDetails;
 
 public class ScenarioDetailsTest {
 
@@ -77,5 +78,31 @@ public class ScenarioDetailsTest {
 
         // Then
         assertThat(uut.getProjectionValues(), notNullValue());
+    }
+
+    @Test
+    public void shouldIgnore() {
+        // Given
+        final Tag tag = new Tag("@IgNore", 1);
+        when(scenario.getTags()).thenReturn(Arrays.asList(tag));
+
+        // When
+        final boolean result = uut.ignore();
+
+        // Then
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void shouldNotIgnore() {
+        // Given
+        final Tag tag = new Tag("@OtheR", 1);
+        when(scenario.getTags()).thenReturn(Arrays.asList(tag));
+
+        // When
+        final boolean result = uut.ignore();
+
+        // Then
+        assertThat(result, is(false));
     }
 }

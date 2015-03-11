@@ -18,12 +18,14 @@ package com.github.bmsantos.core.cola.formatter;
 import gherkin.formatter.model.Background;
 import gherkin.formatter.model.Feature;
 import gherkin.formatter.model.Step;
+import gherkin.formatter.model.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FeatureDetails {
 
+    private static final String IGNORE = "@ignore";
     private final String uri;
     private Feature feature;
     private Background background;
@@ -60,5 +62,14 @@ public class FeatureDetails {
 
     public List<ScenarioDetails> getScenarios() {
         return scenarios;
+    }
+
+    public boolean ignore() {
+        for (final Tag tag : feature.getTags()) {
+            if (tag.getName().toLowerCase().equals(IGNORE)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

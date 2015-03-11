@@ -83,7 +83,9 @@ public class InjectorClassVisitor extends ClassVisitor {
             final String scenarioName = scenarioDetails.getScenario().getName();
             String values = "";
 
-            if (scenarioDetails.hasProjectionValues()) {
+            if (featureDetails.ignore() || scenarioDetails.ignore()) {
+                injectIgnoreMethod(featureName, scenarioName);
+            } else if (scenarioDetails.hasProjectionValues()) {
                 final ProjectionValues projectionValues = scenarioDetails.getProjectionValues();
                 for (int i = 0; i < projectionValues.size(); i++) {
                     values = projectionValues.doRowProjection(i);
@@ -108,6 +110,21 @@ public class InjectorClassVisitor extends ClassVisitor {
         mv.visitVarInsn(ALOAD, 0);
         mv.visitMethodInsn(INVOKESTATIC, "com/github/bmsantos/core/cola/story/processor/StoryProcessor", "process",
             "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V", false);
+        mv.visitInsn(RETURN);
+        mv.visitAnnotation("Lorg/junit/Test;", true);
+        mv.visitEnd();
+        mv.visitMaxs(0, 0);
+    }
+
+    private void injectIgnoreMethod(final String feature, final String scenario) {
+        final MethodVisitor mv =
+            cw.visitMethod(ACC_PUBLIC, feature + " : " + scenario + " (@ignored)", "()V", null, null);
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitLdcInsn(feature);
+        mv.visitLdcInsn(scenario);
+        mv.visitMethodInsn(INVOKESTATIC, "com/github/bmsantos/core/cola/story/processor/StoryProcessor", "ignore",
+            "(Ljava/lang/String;Ljava/lang/String;)V", false);
         mv.visitInsn(RETURN);
         mv.visitAnnotation("Lorg/junit/Test;", true);
         mv.visitEnd();

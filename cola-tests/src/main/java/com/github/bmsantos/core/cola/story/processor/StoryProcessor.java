@@ -40,6 +40,10 @@ public class StoryProcessor {
 
     private static final List<String> fillers = asList("And", "But");
 
+    public static void ignore(final String feature, final String scenario) {
+        log.warn("Feature: " + feature + " - Scenario: " + scenario + " (@ignored)");
+    }
+
     public static void process(final String feature, final String scenario, final String story, final String projectionDetails, final Object instance)
         throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 
