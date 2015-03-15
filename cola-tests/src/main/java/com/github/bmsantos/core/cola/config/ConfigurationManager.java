@@ -15,18 +15,19 @@
  */
 package com.github.bmsantos.core.cola.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+
 public enum ConfigurationManager {
 
     config;
 
-    private static Logger log = LoggerFactory.getLogger(ConfigurationManager.class);
+    private static Logger log = getLogger(ConfigurationManager.class);
 
     private final Properties props = new Properties();
 
