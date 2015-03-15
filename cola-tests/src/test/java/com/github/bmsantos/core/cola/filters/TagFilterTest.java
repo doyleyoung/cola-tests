@@ -1,11 +1,9 @@
 package com.github.bmsantos.core.cola.filters;
 
-import static com.github.bmsantos.core.cola.filters.TagFilter.filterTags;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.util.List;
-
+import org.junit.Before;
 import org.junit.Test;
 
 import com.github.bmsantos.core.cola.formatter.FeatureDetails;
@@ -14,37 +12,47 @@ import com.github.bmsantos.core.cola.story.annotations.Feature;
 
 public class TagFilterTest {
 
-    @Test
-    public void shouldFilterFeaturesWithSkipTag() {
-        final List<FeatureDetails> features = FeaturesLoader.loadFeaturesFrom(SkipFeatureClass.class);
+    private TagFilter uut;
 
-        // When
-        filterTags(features);
-
-        // Then
-        assertThat(features.size(), is(0));
+    @Before
+    public void setUp() {
+        uut = new TagFilter();
     }
 
     @Test
-    public void shouldFilterFeaturesWithSingleScenarioAndSkipTag() {
-        final List<FeatureDetails> features = FeaturesLoader.loadFeaturesFrom(SkipFeatureWithSingleScenarioClass.class);
+    public void shouldFilterFeaturesWithSkipTag() {
+        // Given
+        final FeatureDetails feature = FeaturesLoader.loadFeaturesFrom(SkipFeatureClass.class).get(0);
 
         // When
-        filterTags(features);
+        final boolean result = uut.filtrate(feature);
 
         // Then
-        assertThat(features.size(), is(0));
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void shouldFilterFeaturesWithSkipTagAndSingleScenario() {
+        // Given
+        final FeatureDetails feature = FeaturesLoader.loadFeaturesFrom(SkipFeatureWithSingleScenarioClass.class).get(0);
+
+        // When
+        final boolean result = uut.filtrate(feature);
+
+        // Then
+        assertThat(result, is(true));
     }
 
     @Test
     public void shouldKeepFeature() {
-        final List<FeatureDetails> features = FeaturesLoader.loadFeaturesFrom(NormalFeatureClass.class);
+        // Given
+        final FeatureDetails feature = FeaturesLoader.loadFeaturesFrom(NormalFeatureClass.class).get(0);
 
         // When
-        filterTags(features);
+        final boolean result = uut.filtrate(feature);
 
         // Then
-        assertThat(features.size(), is(1));
+        assertThat(result, is(false));
     }
 
     private static class SkipFeatureClass {

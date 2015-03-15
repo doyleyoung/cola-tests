@@ -17,26 +17,22 @@ package com.github.bmsantos.core.cola.formatter;
 
 import gherkin.formatter.model.Examples;
 import gherkin.formatter.model.Step;
-import gherkin.formatter.model.Tag;
 import gherkin.formatter.model.TagStatement;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScenarioDetails {
+public class ScenarioDetails extends TagStatementDetails {
 
-    private static final String IGNORE = "@ignore";
-
-    private final TagStatement scenario;
     private final List<Step> steps = new ArrayList<>();
     private ProjectionValues projectionValues;
 
     public ScenarioDetails(final TagStatement scenario) {
-        this.scenario = scenario;
+        super(scenario);
     }
 
     public TagStatement getScenario() {
-        return scenario;
+        return tagStatement;
     }
 
     public List<Step> getSteps() {
@@ -53,14 +49,5 @@ public class ScenarioDetails {
 
     public void setExamples(final Examples examples) {
         projectionValues = new ProjectionValues(examples);
-    }
-
-    public boolean ignore() {
-        for (final Tag tag : scenario.getTags()) {
-            if (tag.getName().toLowerCase().equals(IGNORE)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

@@ -8,34 +8,43 @@ import java.util.List;
 
 import com.github.bmsantos.core.cola.formatter.FeatureDetails;
 import com.github.bmsantos.core.cola.formatter.ScenarioDetails;
+import com.github.bmsantos.core.cola.formatter.TagStatementDetails;
 
-public class TagFilter {
+public class TagFilter implements Filter {
 
     private static final String SKIP = "@skip";
 
-    public static List<FeatureDetails> filterTags(final List<FeatureDetails> features) {
-        final Iterator<FeatureDetails> i = features.iterator();
-        while (i.hasNext()) {
-            final FeatureDetails feature = i.next();
-            if (!filterOnSkip(i, feature.getFeature().getTags())) {
-                final Iterator<ScenarioDetails> s = feature.getScenarios().iterator();
-                while (s.hasNext()) {
-                    final ScenarioDetails scenario = s.next();
-                    filterOnSkip(s, scenario.getScenario().getTags());
-                }
-                if (feature.getScenarios().isEmpty()) {
-                    i.remove();
-                }
-            }
+    @Override
+    public boolean filtrate(final TagStatementDetails statement) {
+        if (statement instanceof FeatureDetails) {
+            return filterFeature((FeatureDetails) statement);
         }
-        return features;
+        return filterScenario((ScenarioDetails)statement);
     }
 
-    private static boolean filterOnSkip(final Iterator<?> it, final List<Tag> tags) {
+    private boolean filterFeature(final FeatureDetails feature) {
+        if (skipped(feature.getFeature().getTags())) {
+            return true;
+        }
+
+        final Iterator<ScenarioDetails> it = feature.getScenarios().iterator();
+        while (it.hasNext()) {
+            if (filterScenario(it.next())) {
+                it.remove();
+            }
+        }
+
+        return feature.getScenarios().isEmpty();
+    }
+
+    private boolean filterScenario(final ScenarioDetails scenario) {
+        return skipped(scenario.getScenario().getTags());
+    }
+
+    private boolean skipped(final List<Tag> tags) {
         if (isSet(tags)) {
             for (final Tag tag : tags) {
                 if (tag.getName().toLowerCase().equals(SKIP)) {
-                    it.remove();
                     return true;
                 }
             }
