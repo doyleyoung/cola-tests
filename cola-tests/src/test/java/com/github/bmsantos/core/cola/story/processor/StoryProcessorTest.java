@@ -17,7 +17,7 @@ public class StoryProcessorTest {
     private final TestLogger logger = TestLoggerFactory.getTestLogger(StoryProcessor.class);
 
     @Test
-    public void should() {
+    public void shouldLogOnIgnore() {
         // When
         StoryProcessor.ignore(FEATURE, SCENARIO);
 

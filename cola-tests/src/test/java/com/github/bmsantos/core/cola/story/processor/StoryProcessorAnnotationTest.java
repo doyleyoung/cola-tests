@@ -1,20 +1,25 @@
 package com.github.bmsantos.core.cola.story.processor;
 
+import static com.github.bmsantos.core.cola.report.ReportLoader.reportLoader;
+import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import gherkin.deps.com.google.gson.Gson;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.bmsantos.core.cola.formatter.ReportDetails;
+import com.github.bmsantos.core.cola.report.Report;
 import com.github.bmsantos.core.cola.story.annotations.Given;
 import com.github.bmsantos.core.cola.story.annotations.Then;
 import com.github.bmsantos.core.cola.story.annotations.When;
-import com.github.bmsantos.core.cola.story.processor.StoryProcessor;
 
 public class StoryProcessorAnnotationTest {
 
@@ -31,6 +36,8 @@ public class StoryProcessorAnnotationTest {
             + "When 101 is inserted\n"
             + "Then the true real method will execute";
 
+    private final String noReport = "";
+
     private TestClass instance;
     private final String projectionValues = "";
 
@@ -40,77 +47,70 @@ public class StoryProcessorAnnotationTest {
     }
 
     @Test
-    public void shouldProcessGiven() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
+    public void shouldProcessGiven() throws Throwable {
         // When
         StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", story, projectionValues,
-            instance);
+            noReport, instance);
 
         // Then
         assertThat(instance.wasGivenCalled, equalTo(true));
     }
 
     @Test
-    public void shouldProcessGivenAnd() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
+    public void shouldProcessGivenAnd() throws Throwable {
         // When
         StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", story, projectionValues,
-            instance);
+            noReport, instance);
 
         // Then
         assertThat(instance.wasGivenAndCalled, equalTo(true));
     }
 
     @Test
-    public void shouldProcessWhen() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
+    public void shouldProcessWhen() throws Throwable {
         // When
         StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", story, projectionValues,
-            instance);
+            noReport, instance);
 
         // Then
         assertThat(instance.wasWhenCalled, equalTo(true));
     }
 
     @Test
-    public void shouldProcessWhenAnd() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
+    public void shouldProcessWhenAnd() throws Throwable {
         // When
         StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", story, projectionValues,
-            instance);
+            noReport, instance);
 
         // Then
         assertThat(instance.wasWhenAndCalled, equalTo(true));
     }
 
     @Test
-    public void shouldProcessThen() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
+    public void shouldProcessThen() throws Throwable {
         // When
         StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", story, projectionValues,
-            instance);
+            noReport, instance);
 
         // Then
         assertThat(instance.wasThenCalled, equalTo(true));
     }
 
     @Test
-    public void shouldProcessThenAnd() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
+    public void shouldProcessThenAnd() throws Throwable {
         // When
         StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", story, projectionValues,
-            instance);
+            noReport, instance);
 
         // Then
         assertThat(instance.wasThenAndCalled, equalTo(true));
     }
 
     @Test
-    public void shouldProcessInCorrectOrder() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
+    public void shouldProcessInCorrectOrder() throws Throwable {
         // When
         StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", story, projectionValues,
-            instance);
+            noReport, instance);
 
         // Then
         assertThat(instance.executionOrder,
@@ -118,15 +118,31 @@ public class StoryProcessorAnnotationTest {
     }
 
     @Test
-    public void shouldProcessRegularExpressionSteps() throws IllegalAccessException, IllegalArgumentException,
-    InvocationTargetException {
-
+    public void shouldProcessRegularExpressionSteps() throws Throwable {
         // When
         StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", regexStory,
-            projectionValues, instance);
+            projectionValues, noReport, instance);
 
         // Then
         assertThat(instance.executionOrder, contains("givenAlphaOrBeta", "whenANumberIsInserted", "thenTheRealMethodWillExecute"));
+    }
+
+    @Test
+    public void shouldProcessReports() throws Throwable {
+        // Given
+        final String reportName = "report";
+        final ReportDetails reportDetails = new ReportDetails(reportName, "arg1 arg2");
+
+        final Report report = mock(Report.class);
+        reportLoader.getReports().clear();
+        reportLoader.getReports().put(reportName, report);
+
+        // When
+        StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", regexStory,
+            projectionValues, new Gson().toJson(asList(reportDetails)), instance);
+
+        // Then
+        verify(report).report(reportDetails.getArguments(), null);
     }
 
     private class TestClass {

@@ -15,11 +15,12 @@
  */
 package com.github.bmsantos.core.cola.story.processor;
 
+import static com.github.bmsantos.core.cola.report.ReportLoader.reportLoader;
+import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
 import static java.util.Arrays.asList;
 import gherkin.deps.com.google.gson.Gson;
 import gherkin.deps.com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,12 +30,17 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.bmsantos.core.cola.formatter.ReportDetails;
+import com.github.bmsantos.core.cola.report.Report;
 import com.github.bmsantos.core.cola.story.annotations.Given;
 import com.github.bmsantos.core.cola.story.annotations.Then;
 import com.github.bmsantos.core.cola.story.annotations.When;
 
 public class StoryProcessor {
     private static final Logger log = LoggerFactory.getLogger(StoryProcessor.class);
+
+    private static final TypeToken<Map<String, String>> projectionType = new TypeToken<Map<String, String>>() {};
+    private static final TypeToken<List<ReportDetails>> reportType = new TypeToken<List<ReportDetails>>() {};
 
     private static final String NEW_LINE = "\n";
 
@@ -44,56 +50,61 @@ public class StoryProcessor {
         log.warn("Feature: " + feature + " - Scenario: " + scenario + " (@ignored)");
     }
 
-    public static void process(final String feature, final String scenario, final String story, final String projectionDetails, final Object instance)
-        throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    public static void process(final String feature, final String scenario, final String story,
+        final String projectionDetails, final String reports, final Object instance) throws Throwable {
 
-        log.info("Feature: " + feature + " - Scenario: " + scenario);
-        if (projectionDetails != null && !projectionDetails.isEmpty()) {
-            log.info(projectionDetails);
-        }
+        try {
+            log.info("Feature: " + feature + " - Scenario: " + scenario);
+            if (projectionDetails != null && !projectionDetails.isEmpty()) {
+                log.info(projectionDetails);
+            }
 
-        Map<String, String> projectionValues = new HashMap<>();
-        if (projectionDetails != null && !projectionDetails.isEmpty()) {
-            final TypeToken<Map<String, String>> type = new TypeToken<Map<String, String>>(){};
-            projectionValues = new Gson().fromJson(projectionDetails, type.getType());
-        }
+            Map<String, String> projectionValues = new HashMap<>();
+            if (projectionDetails != null && !projectionDetails.isEmpty()) {
+                projectionValues = new Gson().fromJson(projectionDetails, projectionType.getType());
+            }
 
-        final Method[] methods = instance.getClass().getMethods();
-        final String[] lines = story.split(NEW_LINE);
+            final Method[] methods = instance.getClass().getMethods();
+            final String[] lines = story.split(NEW_LINE);
 
-        final List<MethodDetails> calls = new ArrayList<MethodDetails>();
-        MethodDetails found = null;
-        String previousType = null;
-        for (final String line : lines) {
+            final List<MethodDetails> calls = new ArrayList<MethodDetails>();
+            MethodDetails found = null;
+            String previousType = null;
+            for (final String line : lines) {
 
-            final int firstSpace = line.indexOf(" ");
+                final int firstSpace = line.indexOf(" ");
 
-            String type = line.substring(0, firstSpace);
-            if (fillers.contains(type)) {
-                if (previousType != null) {
-                    type = previousType;
+                String type = line.substring(0, firstSpace);
+                if (fillers.contains(type)) {
+                    if (previousType != null) {
+                        type = previousType;
+                    } else {
+                        logAndThrow("Invalid step: '" + line + "' - '" + type
+                            + "' step must be preceeded with a Given, When or Then step: ");
+                    }
                 } else {
-                    logAndThrow("Invalid step: '" + line + "' - '" + type
-                        + "' step must be preceeded with a Given, When or Then step: ");
+                    previousType = type;
                 }
-            } else {
-                previousType = type;
+
+                final String step = line.substring(firstSpace + 1);
+                found = findMethodWithAnnotation(type, step, methods, projectionValues);
+                if (found != null) {
+                    calls.add(found);
+                } else {
+                    logAndThrow("Failed to find step: " + line);
+                }
             }
 
-            final String step = line.substring(firstSpace + 1);
-            found = findMethodWithAnnotation(type, step, methods, projectionValues);
-            if (found != null) {
-                calls.add(found);
-            } else {
-                logAndThrow("Failed to find step: " + line);
+            for (int i = 0; i < calls.size(); i++) {
+                log.info("> " + lines[i]);
+                final MethodDetails details = calls.get(i);
+                details.getMethod().invoke(instance, details.getArguments());
             }
+        } catch (final Throwable t) {
+            processReports(reports, t);
+            throw t;
         }
-
-        for (int i = 0; i < calls.size(); i++) {
-            log.info("> " + lines[i]);
-            final MethodDetails details = calls.get(i);
-            details.getMethod().invoke(instance, details.getArguments());
-        }
+        processReports(reports, null);
     }
 
     private static MethodDetails findMethodWithAnnotation(final String type, final String step, final Method[] methods, final Map<String, String> projectionValues) {
@@ -126,5 +137,19 @@ public class StoryProcessor {
     private static void logAndThrow(final String message) {
         log.error(message);
         throw new RuntimeException(message);
+    }
+
+    private static void processReports(final String reports, final Throwable error) {
+        if (!isSet(reports)) {
+            return;
+        }
+
+        final List<ReportDetails> reportDetails = new Gson().fromJson(reports, reportType.getType());
+        for (final ReportDetails detail : reportDetails) {
+            final Report report = reportLoader.get(detail.getReport());
+            if (isSet(report)) {
+                report.report(detail.getArguments(), error);
+            }
+        }
     }
 }
