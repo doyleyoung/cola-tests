@@ -7,7 +7,7 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 public class ReportLoaderTest {
-    private static final String COLA_REPORT = "report";
+    private static final String COLA_REPORT = "fake";
 
     @Test
     public void shouldLoadReports() {
