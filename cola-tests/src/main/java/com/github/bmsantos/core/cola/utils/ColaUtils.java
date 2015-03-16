@@ -16,8 +16,11 @@
 package com.github.bmsantos.core.cola.utils;
 
 import static java.io.File.separator;
+import static java.net.URLEncoder.encode;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 public final class ColaUtils {
@@ -71,4 +74,9 @@ public final class ColaUtils {
     public static String toOSPath(final String path) {
         return path.replace("/", separator).replace("\\", separator);
     }
+
+    public static String paramEncoding(final String original) throws UnsupportedEncodingException {
+        return encode(original, UTF_8.name()).replaceAll("\\+", "%20");
+    }
+
 }

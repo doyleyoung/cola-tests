@@ -18,6 +18,7 @@ public class ReportFilterTest {
 
     private static final String REPORT_NAME = "report-me";
     private static final String REPORT_ARGS = "arg1 arg2";
+    private static final String REPORT_KIND = "kind:" + REPORT_NAME + " " + REPORT_ARGS;
     private ReportFilter uut;
 
     @Before
@@ -37,7 +38,7 @@ public class ReportFilterTest {
         assertThat(result, is(false));
         final ReportDetails reportDetails = feature.getReports().get(0);
         assertThat(reportDetails.getReport(), is(REPORT_NAME));
-        assertThat(reportDetails.getArguments(), is(REPORT_ARGS));
+        assertThat(reportDetails.getArguments(), is(REPORT_KIND));
     }
 
     @Test
@@ -52,7 +53,7 @@ public class ReportFilterTest {
         assertThat(result, is(false));
         final ReportDetails reportDetails = feature.getScenarios().get(0).getReports().get(0);
         assertThat(reportDetails.getReport(), is(REPORT_NAME));
-        assertThat(reportDetails.getArguments(), is(REPORT_ARGS));
+        assertThat(reportDetails.getArguments(), is(REPORT_KIND));
     }
 
     @Test
@@ -81,11 +82,11 @@ public class ReportFilterTest {
         // Then
         ReportDetails reportDetails = feature.getReports().get(0);
         assertThat(reportDetails.getReport(), is(REPORT_NAME));
-        assertThat(reportDetails.getArguments(), is(REPORT_ARGS));
+        assertThat(reportDetails.getArguments(), is(REPORT_KIND));
 
         reportDetails = feature.getScenarios().get(0).getReports().get(0);
         assertThat(reportDetails.getReport(), is(REPORT_NAME));
-        assertThat(reportDetails.getArguments(), is(REPORT_ARGS));
+        assertThat(reportDetails.getArguments(), is(REPORT_KIND));
     }
 
     private static class ReportFeatureClass {

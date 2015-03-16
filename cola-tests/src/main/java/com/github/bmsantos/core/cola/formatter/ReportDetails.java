@@ -6,7 +6,7 @@ public class ReportDetails {
 
     public ReportDetails(final String report, final String arguments) {
         this.report = report;
-        this.arguments = arguments;
+        this.arguments = "kind:" + report + " " + arguments;
     }
 
     public String getReport() {

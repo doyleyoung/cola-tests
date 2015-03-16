@@ -31,6 +31,7 @@
     <modules>
         <module>cola-tests-base</module>
         <module>cola-tests</module>
+        <module>cola-tests-reports</module>
         <module>cola-tests-compiler</module>
     </modules>
 
