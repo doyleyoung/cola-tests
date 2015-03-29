@@ -8,19 +8,9 @@ branches:
     - gh-pages
 os: Windows Server 2012
 install:
-  # to install downloader do: "cinst wget -x86"
-  # the format is: "wget -q URL -O c:\path-to-file\file_name"
-  # special format is: "wget -q --no-check-certificate URL -O c:\path-to-file\file_name"
-  # that accounts for downloading from e.g. https://googledrive.com/host/$HASH
-  # -
-  # to install unzipper do: "cinst 7zip.commandline -x86"
-  # the format is: "7z x c:\path-to-archive\archive.zip -oc:\path-where-unzip -y > nul"
   - ps: Invoke-WebRequest "http://mirrors.advancedhosters.com/apache/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.zip" -OutFile "apache-maven-3.2.5-bin.zip"
-  # - cmd: cinst wget -x86
   - cmd: cinst 7zip.commandline -x86
-  # - cmd: wget http://mirrors.advancedhosters.com/apache/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.zip
   - cmd: 7z x apache-maven-3.2.5-bin.zip -y > nul
-  # - cmd: cinst maven
   - cmd: echo %cd%
   - cmd: dir
   - cmd: dir C:\projects\cola-tests\apache-maven-3.2.5
