@@ -8,6 +8,6 @@ Questions? [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.
 
 JUnit + BDD = COLA Tests
 
-COLA Test [Web Site](http://bmsantos.github.io/cola-maven-plugin/)
+COLA Test [Web Site](http://bmsantos.github.io/cola-tests/)
 
 Latest version: 0.0.3
