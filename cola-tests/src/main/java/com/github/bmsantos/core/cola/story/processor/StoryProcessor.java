@@ -21,6 +21,7 @@ import static java.util.Arrays.asList;
 import gherkin.deps.com.google.gson.Gson;
 import gherkin.deps.com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -100,6 +101,9 @@ public class StoryProcessor {
                 final MethodDetails details = calls.get(i);
                 details.getMethod().invoke(instance, details.getArguments());
             }
+        } catch (final InvocationTargetException ex) {
+            processReports(reports, ex.getCause());
+            throw ex.getCause();
         } catch (final Throwable t) {
             processReports(reports, t);
             throw t;
