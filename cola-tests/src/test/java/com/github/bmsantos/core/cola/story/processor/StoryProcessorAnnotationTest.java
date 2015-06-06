@@ -12,8 +12,6 @@ import gherkin.deps.com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hamcrest.core.IsInstanceOf;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ComparisonFailure;
 import org.junit.Test;
@@ -40,12 +38,12 @@ public class StoryProcessorAnnotationTest {
             + "Then the true real method will execute";
 
     private final String exceptionStory =
-            "Given a first method\n"
-                + "And a second method\n"
-                + "When the first method is called\n"
-                + "And the second method is called\n"
-                + "Then the first method will execute\n"
-                + "But the second method assertion will throw an exception";
+        "Given a first method\n"
+            + "And a second method\n"
+            + "When the first method is called\n"
+            + "And the second method is called\n"
+            + "Then the first method will execute\n"
+            + "But the second method assertion will throw an exception";
 
     private final String noReport = "";
 
@@ -156,18 +154,11 @@ public class StoryProcessorAnnotationTest {
         verify(report).report(reportDetails.getArguments(), null);
     }
 
-    @Test
+    @Test(expected = ComparisonFailure.class)
     public void shouldUnwrapTheException() throws Throwable {
         // When
-    	try {
-	        StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", exceptionStory, projectionValues,
-	            noReport, instance);
-	        Assert.fail("exception should be thrown");
-    	} catch(Throwable t) {
-            // Then 
-    		assertThat(t, IsInstanceOf.instanceOf(ComparisonFailure.class));
-    	}
-        
+        StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", exceptionStory,
+            projectionValues, noReport, instance);
     }
 
     private class TestClass {
@@ -230,10 +221,10 @@ public class StoryProcessorAnnotationTest {
         public void thenTheRealMethodWillExecute() {
             executionOrder.add(Thread.currentThread().getStackTrace()[1].getMethodName());
         }
-        
+
         @Then("the second method assertion will throw an exception")
         public void thenThrowAnException() throws Exception {
-        	throw new ComparisonFailure("message", "0", "1");
+            throw new ComparisonFailure("message", "0", "1");
         }
     }
 
