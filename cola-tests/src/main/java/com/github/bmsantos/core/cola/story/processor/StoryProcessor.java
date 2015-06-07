@@ -113,20 +113,20 @@ public class StoryProcessor {
 
     private static MethodDetails findMethodWithAnnotation(final String type, final String step, final Method[] methods, final Map<String, String> projectionValues) {
         for (final Method method : methods) {
-        	boolean foundMethod = false;
-        	String annotationValue = null;
-            
-        	if (isGiven(type, step, method)) {
-            	foundMethod = true;
-            	annotationValue = method.getAnnotation(Given.class).value();
+            boolean foundMethod = false;
+            String annotationValue = null;
+
+            if (isGiven(type, step, method)) {
+                foundMethod = true;
+                annotationValue = method.getAnnotation(Given.class).value();
             } else if (isWhen(type, step, method)) {
-            	foundMethod = true;
-            	annotationValue = method.getAnnotation(When.class).value();
+                foundMethod = true;
+                annotationValue = method.getAnnotation(When.class).value();
             } else if (isThen(type, step, method)) {
-            	foundMethod = true;
-            	annotationValue = method.getAnnotation(Then.class).value();
+                foundMethod = true;
+                annotationValue = method.getAnnotation(Then.class).value();
             }
-            
+
             if (foundMethod) {
                 return MethodDetails.build(method, step, projectionValues, annotationValue);
             }
