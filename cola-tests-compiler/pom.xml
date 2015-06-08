@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>cola-tests-compiler</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
 
     <name>cola-tests-compiler</name>
@@ -19,12 +19,12 @@
         <dependency>
             <groupId>com.github.bmsantos</groupId>
             <artifactId>cola-tests</artifactId>
-            <version>0.2.0-SNAPSHOT</version>
+            <version>0.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.bmsantos</groupId>
             <artifactId>cola-tests-reports</artifactId>
-            <version>0.2.0-SNAPSHOT</version>
+            <version>0.2.0</version>
         </dependency>
         <!-- 3rd Party dependencies -->
         <dependency>
