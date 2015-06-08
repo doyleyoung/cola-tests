@@ -1,0 +1,12 @@
+target/
+.project
+.metadata
+*.tmp
+*.bak
+*.swp
+local.properties
+.classpath
+.settings/
+bin/
+.idea/
+*.iml
