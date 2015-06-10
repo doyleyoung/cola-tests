@@ -26,6 +26,7 @@ import gherkin.formatter.model.Step;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -42,6 +43,10 @@ import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.formatter.ScenarioDetails;
 
 public class InjectorClassVisitor extends ClassVisitor {
+
+    private static final String METHOD_NAME_FORMAT = "%s : %s";
+    private static final String IGNORED_METHOD_NAME_FORMAT = "%s : %s (@ignored)";
+    private static final Pattern METHOD_NAME_PATTERN = Pattern.compile(".* : .*");
 
     private final ClassWriter cw;
     private String stories;
@@ -63,6 +68,15 @@ public class InjectorClassVisitor extends ClassVisitor {
             features.add(FeatureFormatter.parse(stories, "/from/junit/stories/field"));
         }
         return super.visitField(access, name, desc, signature, value);
+    }
+
+    @Override
+    public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature,
+        final String[] exceptions) {
+        if (METHOD_NAME_PATTERN.matcher(name).matches()) {
+            return null;
+        }
+        return super.visitMethod(access, name, desc, signature, exceptions);
     }
 
     @Override
@@ -109,7 +123,8 @@ public class InjectorClassVisitor extends ClassVisitor {
     private void injectTestMethod(final String feature, final String scenario, final String story,
         final String projectionValues, final String reports) {
 
-        final MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, feature + " : " + scenario, "()V", null, null);
+        final MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, String.format(METHOD_NAME_FORMAT, feature, scenario),
+            "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
         mv.visitLdcInsn(feature);
@@ -128,8 +143,8 @@ public class InjectorClassVisitor extends ClassVisitor {
     }
 
     private void injectIgnoreMethod(final String feature, final String scenario) {
-        final MethodVisitor mv =
-            cw.visitMethod(ACC_PUBLIC, feature + " : " + scenario + " (@ignored)", "()V", null, null);
+        final MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, String
+            .format(IGNORED_METHOD_NAME_FORMAT, feature, scenario), "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
         mv.visitLdcInsn(feature);
