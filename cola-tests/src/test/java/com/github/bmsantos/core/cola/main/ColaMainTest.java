@@ -3,6 +3,7 @@ package com.github.bmsantos.core.cola.main;
 import static com.github.bmsantos.core.cola.config.ConfigurationManager.config;
 import static java.io.File.separator;
 import static java.lang.String.format;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -104,8 +105,10 @@ public class ColaMainTest {
     @ConditionalIgnore(condition = RunningOnWindows.class)
     public void shouldNotProcessDefaultIdeBaseClass() throws ColaExecutionException {
         // Given
-        final File ideClass = new File(TARGET_DIR + separator + toOSPath(config.getProperty("default.ide.class")) + ".class");
-        final File renamedIdeClass = new File(TARGET_DIR + separator + toOSPath(config.getProperty("default.ide.class")) + "_renamed");
+        final File ideClass = new File(TARGET_DIR + separator + toOSPath(config.getProperty("default.ide.class"))
+            + ".class");
+        final File renamedIdeClass = new File(TARGET_DIR + separator
+            + toOSPath(config.getProperty("default.ide.class")) + "_renamed");
         ideClass.renameTo(renamedIdeClass);
 
         // When
@@ -138,7 +141,8 @@ public class ColaMainTest {
         uut.execute(provider);
 
         // Then
-        assertThat(logger.getLoggingEvents(), hasItem(info(config.info("processing") + TARGET_DIR + separator + ideClass + ".class")));
+        assertThat(logger.getLoggingEvents(), hasItem(info(config.info("processing") + TARGET_DIR + separator
+            + ideClass + ".class")));
     }
 
     // In order to have the following test pass the class has to be recompiled.
@@ -165,7 +169,7 @@ public class ColaMainTest {
     public void shouldProcessTestClasses() throws ColaExecutionException {
         // Given
         final File testClassFile = new File(TARGET_DIR + separator + testClass);
-        final long initialSize = testClass.length();
+        final long initialSize = testClassFile.length();
 
         // When
         uut.execute(provider);
@@ -203,6 +207,23 @@ public class ColaMainTest {
         // Then
         assertThat(uut.getFailures().size(), is(3));
         assertThat(logger.getLoggingEvents(), hasItem(error(format(config.error("failed.tests"), 3, 4))));
+    }
+
+    @Test
+    public void shouldHandlePreviouslyProcessedTestClasses() throws ColaExecutionException {
+        // Process the class once
+        uut.execute(provider);
+
+        // Given
+        final File testClassFile = new File(TARGET_DIR + separator + testClass);
+        final long initialSize = testClassFile.length();
+
+        // When
+        uut.execute(provider);
+        final long finalSize = testClassFile.length();
+
+        // Then
+        assertThat(finalSize, equalTo(initialSize));
     }
 
     private static String toOSPath(final String value) {
