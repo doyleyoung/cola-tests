@@ -137,19 +137,22 @@ public class StoryProcessor {
     private static boolean isGiven(final String type, final String step, final Method method) {
         return Given.class.getName().endsWith(type) && method.isAnnotationPresent(Given.class)
             && (method.getAnnotation(Given.class).value().equals(step) ||
-                step.matches(method.getAnnotation(Given.class).value()));
+                step.matches(method.getAnnotation(Given.class).value()) ||
+                step.matches(method.getAnnotation(Given.class).value().replaceAll("<(.+?)>", "(.*)")));
     }
 
     private static boolean isWhen(final String type, final String step, final Method method) {
         return When.class.getName().endsWith(type) && method.isAnnotationPresent(When.class)
             && (method.getAnnotation(When.class).value().equals(step) ||
-                step.matches(method.getAnnotation(When.class).value()));
+                step.matches(method.getAnnotation(When.class).value()) ||
+                step.matches(method.getAnnotation(When.class).value().replaceAll("<(.+?)>", "(.*)")));
     }
 
     private static boolean isThen(final String type, final String step, final Method method) {
         return Then.class.getName().endsWith(type) && method.isAnnotationPresent(Then.class)
             && (method.getAnnotation(Then.class).value().equals(step) ||
-                step.matches(method.getAnnotation(Then.class).value()));
+                step.matches(method.getAnnotation(Then.class).value()) ||
+                step.matches(method.getAnnotation(Then.class).value().replaceAll("<(.+?)>", "(.*)")));
     }
 
     private static void logAndThrow(final String message) {

@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.github.bmsantos.core.cola.story.annotations.Assigned;
 import com.github.bmsantos.core.cola.story.annotations.Group;
 import com.github.bmsantos.core.cola.story.annotations.Projection;
 
@@ -69,7 +70,7 @@ public class MethodDetails {
         return results;
     }
 
-    private static List<String> prepareGroups(final String step, final Method method, final String annotationValue) {
+    private static List<String> prepareGroups(final String step, final String annotationValue) {
 
         final List<String> results = new ArrayList<>();
 
@@ -86,13 +87,31 @@ public class MethodDetails {
         return results;
     }
 
+    private static List<String> prepareAssignedValues(final String step, final String annotationValue) {
+
+        final List<String> results = new ArrayList<>();
+
+        if (step != null && annotationValue != null) {
+            final Pattern pattern = Pattern.compile(annotationValue.replaceAll("<(.+?)>", "(.*)"));
+            final Matcher matcher = pattern.matcher(step);
+            if (matcher.matches()) {
+                for (int i = 0; i <= matcher.groupCount(); i++) {
+                    results.add(matcher.group(i));
+                }
+            }
+        }
+
+        return results;
+    }
+
     private static Object[] prepareArguments(final Method method, final List<String> projections,
-        final Map<String, String> projectionValues, final List<String> groups) {
+        final Map<String, String> projectionValues, final List<String> assignments,
+        final List<String> assignmentValues, final List<String> groups) {
 
         final Annotation[][] params = method.getParameterAnnotations();
         final Object[] args = new Object[params.length];
 
-        if ((projectionValues == null || projectionValues.isEmpty()) && (groups == null || groups.isEmpty())) {
+        if ((projectionValues == null || projectionValues.isEmpty()) && assignmentValues.isEmpty() && groups.isEmpty()) {
             return args;
         }
 
@@ -109,6 +128,11 @@ public class MethodDetails {
                     final Group group = (Group) annotation;
                     if (groups.size() > group.value()) {
                         args[i] = generateValue(types[i], groups.get(group.value()));
+                    }
+                } else if (annotation.annotationType().equals(Assigned.class)) {
+                    final Assigned assigned = (Assigned) annotation;
+                    if (assignments.contains(assigned.value())) {
+                        args[i] = generateValue(types[i], assignmentValues.get(assignments.indexOf(assigned.value()) + 1));
                     }
                 }
             }
@@ -142,8 +166,11 @@ public class MethodDetails {
         final Map<String, String> projectionValues, final String annotationValue) {
 
         final List<String> projections = prepareProjections(step);
-        final List<String> groups = prepareGroups(step, method, annotationValue);
-        final Object[] arguments = prepareArguments(method, projections, projectionValues, groups);
+        final List<String> assignments = prepareProjections(annotationValue);
+        final List<String> assignmentValues = prepareAssignedValues(step, annotationValue);
+        final List<String> groups = prepareGroups(step, annotationValue);
+        final Object[] arguments = prepareArguments(method, projections, projectionValues, assignments,
+            assignmentValues, groups);
 
         return new MethodDetails(method, projections, arguments);
     }

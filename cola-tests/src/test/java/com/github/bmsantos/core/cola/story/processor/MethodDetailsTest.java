@@ -1,6 +1,7 @@
 package com.github.bmsantos.core.cola.story.processor;
 
 import static java.util.Arrays.asList;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -13,9 +14,9 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.bmsantos.core.cola.story.annotations.Assigned;
 import com.github.bmsantos.core.cola.story.annotations.Group;
 import com.github.bmsantos.core.cola.story.annotations.Projection;
-import com.github.bmsantos.core.cola.story.processor.MethodDetails;
 
 public class MethodDetailsTest {
 
@@ -25,16 +26,21 @@ public class MethodDetailsTest {
 
     private static final String ANNOTATION_VALUE = "Given (\\d+) beers per (\\d+) developers";
 
+    private static final String ASSIGNED_ANNOTATION_VALUE = "Given <pints> beers per <alcoholics> developers";
+
     private MethodDetails uut;
 
     private Method method;
 
     private Method methodGroups;
 
+    private Method methodAssigned;
+
     @Before
     public void setUp() throws Exception {
         method = this.getClass().getMethod("given", new Class<?>[] { String.class, String.class });
         methodGroups = this.getClass().getMethod("givenGroups", new Class<?>[] { Integer.class, Integer.class });
+        methodAssigned = this.getClass().getMethod("givenAssigned", new Class<?>[] { Integer.class, Long.class });
     }
 
     @Test
@@ -58,7 +64,7 @@ public class MethodDetailsTest {
         final List<String> result = uut.getProjections();
 
         // Then
-        assertThat(result, Matchers.contains("pints", "alcoholics"));
+        assertThat(result, contains("pints", "alcoholics"));
     }
 
     @Test
@@ -74,7 +80,7 @@ public class MethodDetailsTest {
         final Object[] result = uut.getArguments();
 
         // Then
-        assertThat(asList(result), Matchers.contains((Object) "100", (Object) "25"));
+        assertThat(asList(result), contains((Object) "100", (Object) "25"));
     }
 
     @Test
@@ -86,12 +92,27 @@ public class MethodDetailsTest {
         final Object[] result = uut.getArguments();
 
         // Then
-        assertThat(asList(result), Matchers.contains((Object) 50, (Object) 12));
+        assertThat(asList(result), contains((Object) 50, (Object) 12));
+    }
+
+    @Test
+    public void shouldPrepareAssignedArguments() {
+        // Given
+        uut = MethodDetails.build(methodAssigned, STEP_GROUPS, null, ASSIGNED_ANNOTATION_VALUE);
+
+        // When
+        final Object[] result = uut.getArguments();
+
+        // Then
+        assertThat(asList(result), Matchers.contains((Object) 50, (Object) 12L));
     }
 
     public void given(@Projection("pints") final String pints, @Projection("alcoholics") final String alcolholics) {
     }
 
     public void givenGroups(@Group(1) final Integer pints, @Group(2) final Integer alcolholics) {
+    }
+
+    public void givenAssigned(@Assigned("pints") final Integer pints, @Assigned("alcoholics") final Long alcolholics) {
     }
 }
