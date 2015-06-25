@@ -18,6 +18,7 @@ package com.github.bmsantos.core.cola.injector;
 import static com.github.bmsantos.core.cola.filters.FilterProcessor.filtrate;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ASM4;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.RETURN;
 import gherkin.deps.com.google.gson.Gson;
@@ -29,15 +30,12 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
 import com.github.bmsantos.core.cola.filters.Filter;
 import com.github.bmsantos.core.cola.filters.ReportFilter;
 import com.github.bmsantos.core.cola.filters.TagFilter;
 import com.github.bmsantos.core.cola.formatter.FeatureDetails;
-import com.github.bmsantos.core.cola.formatter.FeatureFormatter;
 import com.github.bmsantos.core.cola.formatter.ProjectionValues;
 import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.formatter.ScenarioDetails;
@@ -48,31 +46,16 @@ public class InjectorClassVisitor extends ClassVisitor {
     private static final String IGNORED_METHOD_NAME_FORMAT = "%s : %s (@ignored)";
     private static final Pattern METHOD_NAME_PATTERN = Pattern.compile(".* : .*");
 
-    private final ClassWriter cw;
-    private String stories;
-    private List<FeatureDetails> features;
+    private final InfoClassVisitor infoClassVisitor;
     private final List<Filter> filters = Arrays.<Filter> asList(new TagFilter(), new ReportFilter());
 
-    public InjectorClassVisitor(final int api, final ClassWriter cw, final List<FeatureDetails> features) {
-        super(api, cw);
-        this.cw = cw;
-        this.features = features;
+    public InjectorClassVisitor(final InfoClassVisitor infoClassVisitor) {
+        super(ASM4, infoClassVisitor);
+        this.infoClassVisitor = infoClassVisitor;
     }
 
     @Override
-    public FieldVisitor visitField(final int access, final String name, final String desc, final String signature,
-        final Object value) {
-        if ((features == null || features.isEmpty()) && name.equals("stories")) {
-            stories = (String) value;
-            features = new ArrayList<>();
-            features.add(FeatureFormatter.parse(stories, "/from/junit/stories/field"));
-        }
-        return super.visitField(access, name, desc, signature, value);
-    }
-
-    @Override
-    public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature,
-        final String[] exceptions) {
+    public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature, final String[] exceptions) {
         if (METHOD_NAME_PATTERN.matcher(name).matches()) {
             return null;
         }
@@ -81,7 +64,7 @@ public class InjectorClassVisitor extends ClassVisitor {
 
     @Override
     public void visitEnd() {
-        for (final FeatureDetails feature : filtrate(features).using(filters)) {
+        for (final FeatureDetails feature : filtrate(infoClassVisitor.getFeatures()).using(filters)) {
             injectTestMethod(feature);
         }
         super.visitEnd();
@@ -123,7 +106,7 @@ public class InjectorClassVisitor extends ClassVisitor {
     private void injectTestMethod(final String feature, final String scenario, final String story,
         final String projectionValues, final String reports) {
 
-        final MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, String.format(METHOD_NAME_FORMAT, feature, scenario),
+        final MethodVisitor mv = infoClassVisitor.visitMethod(ACC_PUBLIC, String.format(METHOD_NAME_FORMAT, feature, scenario),
             "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
@@ -143,8 +126,8 @@ public class InjectorClassVisitor extends ClassVisitor {
     }
 
     private void injectIgnoreMethod(final String feature, final String scenario) {
-        final MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, String
-            .format(IGNORED_METHOD_NAME_FORMAT, feature, scenario), "()V", null, null);
+        final MethodVisitor mv = infoClassVisitor.visitMethod(ACC_PUBLIC, String.format(IGNORED_METHOD_NAME_FORMAT, feature, scenario), 
+            "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
         mv.visitLdcInsn(feature);
