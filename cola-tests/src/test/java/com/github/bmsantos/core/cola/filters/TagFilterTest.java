@@ -3,11 +3,14 @@ package com.github.bmsantos.core.cola.filters;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.Test;
 
+import test.utils.TestUtils;
+
 import com.github.bmsantos.core.cola.formatter.FeatureDetails;
-import com.github.bmsantos.core.cola.formatter.FeaturesLoader;
 import com.github.bmsantos.core.cola.story.annotations.Feature;
 
 public class TagFilterTest {
@@ -20,9 +23,9 @@ public class TagFilterTest {
     }
 
     @Test
-    public void shouldFilterFeaturesWithSkipTag() {
+    public void shouldFilterFeaturesWithSkipTag() throws IOException {
         // Given
-        final FeatureDetails feature = FeaturesLoader.loadFeaturesFrom(SkipFeatureClass.class).get(0);
+        final FeatureDetails feature = TestUtils.loadFeatures("com.github.bmsantos.core.cola.filters.TagFilterTest$SkipFeatureClass").get(0);
 
         // When
         final boolean result = uut.filtrate(feature);
@@ -32,9 +35,9 @@ public class TagFilterTest {
     }
 
     @Test
-    public void shouldFilterFeaturesWithSkipTagAndSingleScenario() {
+    public void shouldFilterFeaturesWithSkipTagAndSingleScenario() throws IOException {
         // Given
-        final FeatureDetails feature = FeaturesLoader.loadFeaturesFrom(SkipFeatureWithSingleScenarioClass.class).get(0);
+        final FeatureDetails feature = TestUtils.loadFeatures("com.github.bmsantos.core.cola.filters.TagFilterTest$SkipFeatureWithSingleScenarioClass").get(0);
 
         // When
         final boolean result = uut.filtrate(feature);
@@ -44,9 +47,9 @@ public class TagFilterTest {
     }
 
     @Test
-    public void shouldKeepFeature() {
+    public void shouldKeepFeature() throws IOException {
         // Given
-        final FeatureDetails feature = FeaturesLoader.loadFeaturesFrom(NormalFeatureClass.class).get(0);
+        final FeatureDetails feature = TestUtils.loadFeatures("com.github.bmsantos.core.cola.filters.TagFilterTest$NormalFeatureClass").get(0);
 
         // When
         final boolean result = uut.filtrate(feature);

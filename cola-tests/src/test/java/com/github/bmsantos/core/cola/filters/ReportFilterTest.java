@@ -4,13 +4,15 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import gherkin.deps.com.google.gson.Gson;
 
+import java.io.IOException;
 import java.util.Collections;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import test.utils.TestUtils;
+
 import com.github.bmsantos.core.cola.formatter.FeatureDetails;
-import com.github.bmsantos.core.cola.formatter.FeaturesLoader;
 import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.story.annotations.Feature;
 
@@ -27,9 +29,9 @@ public class ReportFilterTest {
     }
 
     @Test
-    public void shouldGetFeatureReportDetails() {
+    public void shouldGetFeatureReportDetails() throws IOException {
         // Given
-        final FeatureDetails feature = FeaturesLoader.loadFeaturesFrom(ReportFeatureClass.class).get(0);
+        final FeatureDetails feature = TestUtils.loadFeatures("com.github.bmsantos.core.cola.filters.ReportFilterTest$ReportFeatureClass").get(0);
 
         // When
         final boolean result = uut.filtrate(feature);
@@ -42,9 +44,9 @@ public class ReportFilterTest {
     }
 
     @Test
-    public void shouldGetScenarioReportDetails() {
+    public void shouldGetScenarioReportDetails() throws IOException {
         // Given
-        final FeatureDetails feature = FeaturesLoader.loadFeaturesFrom(ReportScenarioClass.class).get(0);
+        final FeatureDetails feature = TestUtils.loadFeatures("com.github.bmsantos.core.cola.filters.ReportFilterTest$ReportScenarioClass").get(0);
 
         // When
         final boolean result = uut.filtrate(feature);
@@ -57,9 +59,9 @@ public class ReportFilterTest {
     }
 
     @Test
-    public void shouldNotHaveComments() {
+    public void shouldNotHaveComments() throws IOException {
         // Given
-        final FeatureDetails feature = FeaturesLoader.loadFeaturesFrom(NormalFeatureClass.class).get(0);
+        final FeatureDetails feature = TestUtils.loadFeatures("com.github.bmsantos.core.cola.filters.ReportFilterTest$NormalFeatureClass").get(0);
         new Gson().toJson(Collections.emptyList());
 
         // When
@@ -72,9 +74,9 @@ public class ReportFilterTest {
     }
 
     @Test
-    public void shouldParseReportDetailsOnly() {
+    public void shouldParseReportDetailsOnly() throws IOException {
         // Given
-        final FeatureDetails feature = FeaturesLoader.loadFeaturesFrom(MultilineCommentClass.class).get(0);
+        final FeatureDetails feature = TestUtils.loadFeatures("com.github.bmsantos.core.cola.filters.ReportFilterTest$MultilineCommentClass").get(0);
 
         // When
         uut.filtrate(feature);

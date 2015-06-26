@@ -64,10 +64,6 @@ public class InfoClassVisitor extends ClassVisitor {
 
                                 final String featureUri = className.substring(0, className.lastIndexOf("/") + 1) + value.toString();
 
-                                System.err.println(className);
-                                System.err.println(featureUri);
-                                System.err.println(value.toString());
-
                                 final InputStream in = findResource(featureUri);
                                 if (in == null) {
                                     raiseInvalidFeatureUri(featureUri, "Unable to find feature file (.feature|.stories|.story|.gherkin)");
@@ -135,6 +131,8 @@ public class InfoClassVisitor extends ClassVisitor {
             return FeatureFormatter.parse(featureValue, className + "." + fieldName);
         } catch (final LexingError e) {
             raiseInvalidFeature(fieldName, e.getMessage());
+        } catch (final NullPointerException n) {
+            raiseInvalidFeature(fieldName, "Empty feature or unreachable field. Please ensure that field is final.");
         }
         raiseInvalidFeature(fieldName, "Invalid feature.");
         return null;
