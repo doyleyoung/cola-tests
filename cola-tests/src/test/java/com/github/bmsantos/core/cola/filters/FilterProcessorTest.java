@@ -5,16 +5,18 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+
+import test.utils.TestUtils;
 
 import com.github.bmsantos.core.cola.formatter.FeatureDetails;
-import com.github.bmsantos.core.cola.formatter.FeaturesLoader;
 import com.github.bmsantos.core.cola.formatter.TagStatementDetails;
 import com.github.bmsantos.core.cola.story.annotations.Feature;
 
@@ -24,13 +26,13 @@ public class FilterProcessorTest {
 
     @Before
     public void setUp() {
-        filter = Mockito.mock(Filter.class);
+        filter = mock(Filter.class);
     }
 
     @Test
-    public void shouldFilterOutFeature() {
+    public void shouldFilterOutFeature() throws IOException {
         // Given
-        final List<FeatureDetails> features = FeaturesLoader.loadFeaturesFrom(SkipFeatureClass.class);
+        final List<FeatureDetails> features = TestUtils.loadFeatures("com.github.bmsantos.core.cola.filters.FilterProcessorTest$SkipFeatureClass");
         when(filter.filtrate(any(TagStatementDetails.class))).thenReturn(true);
 
         // When
@@ -41,9 +43,9 @@ public class FilterProcessorTest {
     }
 
     @Test
-    public void shouldNotFilterFeature() {
+    public void shouldNotFilterFeature() throws IOException {
         // Given
-        final List<FeatureDetails> features = FeaturesLoader.loadFeaturesFrom(SkipFeatureClass.class);
+        final List<FeatureDetails> features = TestUtils.loadFeatures("com.github.bmsantos.core.cola.filters.FilterProcessorTest$SkipFeatureClass");
         when(filter.filtrate(any(TagStatementDetails.class))).thenReturn(false);
 
         // When

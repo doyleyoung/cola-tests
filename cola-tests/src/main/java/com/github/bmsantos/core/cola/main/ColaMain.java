@@ -16,10 +16,8 @@
 package com.github.bmsantos.core.cola.main;
 
 import static com.github.bmsantos.core.cola.config.ConfigurationManager.config;
-import static com.github.bmsantos.core.cola.formatter.FeaturesLoader.loadFeaturesFrom;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryFileExists;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOsClass;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.classToBinary;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
 import static java.lang.String.format;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
@@ -39,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.bmsantos.core.cola.exceptions.ColaExecutionException;
-import com.github.bmsantos.core.cola.formatter.FeatureDetails;
+import com.github.bmsantos.core.cola.injector.InfoClassVisitor;
 import com.github.bmsantos.core.cola.injector.InjectorClassVisitor;
 import com.github.bmsantos.core.cola.injector.MethodRemoverClassVisitor;
 import com.github.bmsantos.core.cola.provider.IColaProvider;
@@ -88,14 +86,11 @@ public class ColaMain {
 
         for (final String className : targetClasses) {
             try {
-                final Class<?> annotatedClass = provider.getTargetClassLoader().loadClass(classToBinary(className));
-
-                final List<FeatureDetails> featureList = loadFeaturesFrom(annotatedClass);
-
                 final ClassWriter classWritter = new ClassWriter(COMPUTE_MAXS);
 
-                final InjectorClassVisitor injectorClassVisitor = new InjectorClassVisitor(ASM4, classWritter,
-                    featureList);
+                final InfoClassVisitor infoClassVisitor = new InfoClassVisitor(classWritter, provider.getTargetClassLoader());
+
+                final InjectorClassVisitor injectorClassVisitor = new InjectorClassVisitor(infoClassVisitor);
 
                 processClass(className, classWritter, injectorClassVisitor);
             } catch (final Throwable t) {
