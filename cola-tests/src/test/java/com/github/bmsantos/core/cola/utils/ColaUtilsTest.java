@@ -1,8 +1,11 @@
 package com.github.bmsantos.core.cola.utils;
 
+import static com.github.bmsantos.core.cola.utils.ColaUtils.RESOURCE_SEPARATOR;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryFileExists;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOS;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOsClass;
+import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToResource;
+import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToResourceClass;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.classToBinary;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.osToBinary;
@@ -14,8 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-
-import com.github.bmsantos.core.cola.utils.ColaUtils;
 
 public class ColaUtilsTest {
 
@@ -177,6 +178,19 @@ public class ColaUtilsTest {
     }
 
     @Test
+    public void shouldConvertToResource() {
+        // Given
+        final String path = toBinary("com", "github", "bmsantos", "MyClass");
+        final String expected = path.replace(".", RESOURCE_SEPARATOR);
+
+        // When
+        final String result = binaryToResource(path);
+
+        // Then
+        assertThat(result, is(expected));
+    }
+
+    @Test
     public void shouldConvertToOSClass() {
         // Given
         final String path = toBinary("com", "github", "bmsantos", "MyClass");
@@ -184,6 +198,19 @@ public class ColaUtilsTest {
 
         // When
         final String result = binaryToOsClass(path);
+
+        // Then
+        assertThat(result, is(expected));
+    }
+
+    @Test
+    public void shouldConvertToResourceClass() {
+        // Given
+        final String path = toBinary("com", "github", "bmsantos", "MyClass");
+        final String expected = path.replace(".", RESOURCE_SEPARATOR) + ".class";
+
+        // When
+        final String result = binaryToResourceClass(path);
 
         // Then
         assertThat(result, is(expected));
