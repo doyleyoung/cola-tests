@@ -25,6 +25,7 @@ import java.util.List;
 
 public final class ColaUtils {
 
+    public static final String RESOURCE_SEPARATOR = "/";
     public static final String CLASS_EXT = ".class";
 
     public static boolean isSet(final String value) {
@@ -67,12 +68,24 @@ public final class ColaUtils {
         return result;
     }
 
+    public static String binaryToResource(final String binaryFormat) {
+        return binaryFormat.replace(".", RESOURCE_SEPARATOR);
+    }
+
+    public static String binaryToResourceClass(final String binaryFormat) {
+        String result = binaryToResource(binaryFormat);
+        if (!isClassFile(result)) {
+            result += CLASS_EXT;
+        }
+        return result;
+    }
+
     public static boolean binaryFileExists(final String dir, final String clazz) {
         return isSet(dir) && isSet(clazz) && new File(dir + separator + binaryToOsClass(clazz)).exists();
     }
 
     public static String toOSPath(final String path) {
-        return path.replace("/", separator).replace("\\", separator);
+        return path.replace(RESOURCE_SEPARATOR, separator).replace("\\", separator);
     }
 
     public static String paramEncoding(final String original) throws UnsupportedEncodingException {

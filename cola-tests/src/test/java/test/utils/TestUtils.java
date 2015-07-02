@@ -1,11 +1,14 @@
 package test.utils;
 
+import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOsClass;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
+import org.codehaus.plexus.util.IOUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
@@ -23,6 +26,11 @@ public class TestUtils {
         cr.accept(classVisitor, 0);
 
         return classVisitor.getFeatures();
+    }
+
+    public static byte[] loadClassBytes(final Class<?> clazz) throws IOException {
+        final InputStream is = clazz.getClassLoader().getResourceAsStream(binaryToOsClass(clazz.getName()));
+        return IOUtil.toByteArray(is);
     }
 
 }
