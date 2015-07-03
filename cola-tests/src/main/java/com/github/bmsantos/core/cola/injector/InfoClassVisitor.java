@@ -13,6 +13,7 @@ import java.util.Scanner;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
 
 import com.github.bmsantos.core.cola.exceptions.InvalidFeature;
 import com.github.bmsantos.core.cola.exceptions.InvalidFeatureUri;
@@ -24,6 +25,7 @@ public class InfoClassVisitor extends ClassVisitor {
     private static final String DEFAULT_FIELD_NAME = "stories";
     private static final String FEATURE_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/Feature;";
     private static final String FEATURES_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/Features;";
+    private static final String IDE_ENABLER_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/IdeEnabler;";
 
     private final String[] fileExtensions = { ".feature", ".stories", ".story", ".gherkin", "" };
 
@@ -31,8 +33,10 @@ public class InfoClassVisitor extends ClassVisitor {
     private String className;
     private String fieldName;
     private Object fieldValue;
+    private String methodName;
 
     private final List<FeatureDetails> features = new ArrayList<>();
+    private final List<String> ideEnabledMethods = new ArrayList<>();
 
     public InfoClassVisitor(final ClassVisitor cv, final ClassLoader classLoader) {
         super(ASM4, cv);
@@ -41,6 +45,10 @@ public class InfoClassVisitor extends ClassVisitor {
 
     public List<FeatureDetails> getFeatures() {
         return features;
+    }
+
+    public List<String> getIdeEnabledMethods() {
+        return ideEnabledMethods;
     }
 
     @Override
@@ -108,7 +116,22 @@ public class InfoClassVisitor extends ClassVisitor {
                 }
                 return super.visitAnnotation(descriptor, runtimeVisible);
             }
+        };
+    }
 
+    @Override
+    public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature, final String[] exceptions) {
+        methodName = name;
+
+        final MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+        return new MethodVisitor(ASM4, mv) {
+            @Override
+            public AnnotationVisitor visitAnnotation(final String descriptor, final boolean runtimeVisible) {
+                if (descriptor.equals(IDE_ENABLER_DESCRIPTOR)) {
+                    ideEnabledMethods.add(methodName);
+                }
+                return super.visitAnnotation(descriptor, runtimeVisible);
+            }
         };
     }
 

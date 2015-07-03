@@ -20,8 +20,7 @@ import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryFileExists;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOsClass;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
 import static java.lang.String.format;
-import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
-import static org.objectweb.asm.Opcodes.ASM4;
+import static org.codehaus.plexus.util.IOUtil.toByteArray;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -30,16 +29,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.bmsantos.core.cola.exceptions.ColaExecutionException;
-import com.github.bmsantos.core.cola.injector.InfoClassVisitor;
-import com.github.bmsantos.core.cola.injector.InjectorClassVisitor;
-import com.github.bmsantos.core.cola.injector.MethodRemoverClassVisitor;
+import com.github.bmsantos.core.cola.instrument.ColaTransformer;
 import com.github.bmsantos.core.cola.provider.IColaProvider;
 
 public class ColaMain {
@@ -86,13 +80,7 @@ public class ColaMain {
 
         for (final String className : targetClasses) {
             try {
-                final ClassWriter classWritter = new ClassWriter(COMPUTE_MAXS);
-
-                final InfoClassVisitor infoClassVisitor = new InfoClassVisitor(classWritter, provider.getTargetClassLoader());
-
-                final InjectorClassVisitor injectorClassVisitor = new InjectorClassVisitor(infoClassVisitor);
-
-                processClass(className, classWritter, injectorClassVisitor);
+                processClass(className, null);
             } catch (final Throwable t) {
                 log.error(format(config.error("failed.process.file"), className), t);
                 failures.add(format(config.error("failed.processing"), className, t.getMessage()));
@@ -113,10 +101,7 @@ public class ColaMain {
 
         ideBaseClass = binaryToOsClass(ideBaseClass);
 
-        final ClassWriter cw = new ClassWriter(COMPUTE_MAXS);
-        final MethodRemoverClassVisitor remover = new MethodRemoverClassVisitor(ASM4, cw, ideTestMethod);
-
-        processClass(ideBaseClass, cw, remover);
+        processClass(ideBaseClass, ideTestMethod);
 
         return ideBaseClass;
     }
@@ -145,19 +130,21 @@ public class ColaMain {
         return false;
     }
 
-    private void processClass(final String className, final ClassWriter cw, final ClassVisitor classVisitor)
+    private void processClass(final String className, final String methodToRemove)
         throws Exception {
 
         final String filePath = provider.getTargetDirectory() + className;
         log.info(config.info("processing") + filePath);
 
         final InputStream in = provider.getTargetClassLoader().getResourceAsStream(className);
-        final ClassReader classReader = new ClassReader(in);
-        classReader.accept(classVisitor, 0);
+
+        final ColaTransformer transformer = new ColaTransformer();
+        transformer.removeMethod(methodToRemove);
+        final byte[] instrumented = transformer.transform(provider.getTargetClassLoader(), null, null, null, toByteArray(in));
 
         final File file = new File(filePath);
         try (final DataOutputStream dout = new DataOutputStream(new FileOutputStream(file))) {
-            dout.write(cw.toByteArray());
+            dout.write(instrumented);
         }
     }
 }
