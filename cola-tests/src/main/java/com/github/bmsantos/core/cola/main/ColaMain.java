@@ -20,8 +20,8 @@ import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryFileExists;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOsClass;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
-import static org.objectweb.asm.Opcodes.ASM4;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -114,7 +114,7 @@ public class ColaMain {
         ideBaseClass = binaryToOsClass(ideBaseClass);
 
         final ClassWriter cw = new ClassWriter(COMPUTE_MAXS);
-        final MethodRemoverClassVisitor remover = new MethodRemoverClassVisitor(ASM4, cw, ideTestMethod);
+        final MethodRemoverClassVisitor remover = new MethodRemoverClassVisitor(cw, asList(ideTestMethod));
 
         processClass(ideBaseClass, cw, remover);
 
