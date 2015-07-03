@@ -7,6 +7,8 @@ import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -18,6 +20,12 @@ import com.github.bmsantos.core.cola.injector.MethodRemoverClassVisitor;
 public class ColaTransformer implements ClassFileTransformer {
 
     private static final int WRITER_FLAGS = COMPUTE_FRAMES | COMPUTE_MAXS;
+
+    private final List<String> methodsToRemove = new ArrayList<>();
+
+    public void removeMethod(final String methodName) {
+        methodsToRemove.add(methodName);
+    }
 
     @Override
     public byte[] transform(final ClassLoader classLoader, final String className, final Class<?> classBeingRedefined,
@@ -32,6 +40,8 @@ public class ColaTransformer implements ClassFileTransformer {
             final InfoClassVisitor info = new InfoClassVisitor(writer, classLoader);
             final InjectorClassVisitor injector = new InjectorClassVisitor(info);
             reader.accept(injector, 0);
+
+            info.getIdeEnabledMethods().addAll(methodsToRemove);
 
             if (!info.getIdeEnabledMethods().isEmpty()) {
                 return removeMethods(writer, info);
