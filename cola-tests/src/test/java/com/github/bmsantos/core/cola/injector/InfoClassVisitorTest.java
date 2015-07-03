@@ -1,5 +1,7 @@
 package com.github.bmsantos.core.cola.injector;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
@@ -7,6 +9,7 @@ import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 
 import java.io.IOException;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -85,7 +88,7 @@ public class InfoClassVisitorTest {
         // Then
         assertThat(uut.getFeatures().size(), is(2));
     }
-    
+
     @Test
     public void shouldRetrieveComplexClass() throws IOException {
         // Given
@@ -139,6 +142,45 @@ public class InfoClassVisitorTest {
         cr.accept(uut, 0);
     }
     
+    @Test
+    public void shouldListIdeEnabledMethod() throws IOException {
+        // Given
+        final ClassWriter cw = initClassWriterFor("test.utils.IdeEnablerClass");
+        uut = new InfoClassVisitor(cw, getClass().getClassLoader());
+
+        // When
+        cr.accept(uut, 0);
+
+        // Then
+        assertThat(uut.getIdeEnabledMethods(), hasItem("shouldBeRemoved"));
+    }
+
+    @Test
+    public void shouldListAllIdeEnabledMethods() throws IOException {
+        // Given
+        final ClassWriter cw = initClassWriterFor("test.utils.MultipleIdeEnablerClass");
+        uut = new InfoClassVisitor(cw, getClass().getClassLoader());
+
+        // When
+        cr.accept(uut, 0);
+
+        // Then
+        assertThat(uut.getIdeEnabledMethods(), contains("shouldBeRemoved1", "shouldBeRemoved2"));
+    }
+
+    @Test
+    public void shouldNotHaveIdeEnabledMethods() throws IOException {
+        // Given
+        final ClassWriter cw = initClassWriterFor("test.utils.StoriesFieldClass");
+        uut = new InfoClassVisitor(cw, getClass().getClassLoader());
+
+        // When
+        cr.accept(uut, 0);
+
+        // Then
+        assertThat(uut.getIdeEnabledMethods().size(), is(0));
+    }
+
     private ClassWriter initClassWriterFor(final String className) throws IOException {
         cr = new ClassReader(className);
         final ClassWriter cw = new ClassWriter(cr, COMPUTE_FRAMES | COMPUTE_MAXS);
