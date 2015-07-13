@@ -1,6 +1,6 @@
 package test.utils;
 
-public class StoriesFieldClass {
+public class StoriesFieldTest {
     private final String stories =
         "Feature: Load feature from default field\n"
             + "Scenario: Should have scenario steps\n"

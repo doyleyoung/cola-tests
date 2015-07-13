@@ -35,7 +35,7 @@ public class MethodRemoverClassVisitorTest {
     @Test
     public void shouldRetrieveDefaultField() throws IOException {
         // Given
-        final ClassVisitor cw = initClassWriterFor("test.utils.IdeEnablerClass");
+        final ClassVisitor cw = initClassWriterFor("test.utils.IdeEnablerTest");
         uut = new MethodRemoverClassVisitor(cw, asList(METHOD_TO_REMOVE));
 
         // When
