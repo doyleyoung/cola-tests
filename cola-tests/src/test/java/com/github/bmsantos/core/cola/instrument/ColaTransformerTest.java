@@ -10,8 +10,9 @@ import static test.utils.TestUtils.traceBytecode;
 import org.junit.Before;
 import org.junit.Test;
 
-import test.utils.MultipleIdeEnablerClass;
-import test.utils.StoriesFieldClass;
+import test.utils.InvalidTest;
+import test.utils.MultipleIdeEnablerTest;
+import test.utils.StoriesFieldTest;
 
 public class ColaTransformerTest {
 
@@ -25,7 +26,7 @@ public class ColaTransformerTest {
     @Test
     public void shouldTransformClass() throws Exception {
         // Given
-        final Class<?> clazz = StoriesFieldClass.class;
+        final Class<?> clazz = StoriesFieldTest.class;
         final byte[] original = loadClassBytes(clazz);
 
         // When
@@ -53,7 +54,7 @@ public class ColaTransformerTest {
     @Test
     public void shouldRemoveTransformClass() throws Exception {
         // Given
-        final Class<?> clazz = MultipleIdeEnablerClass.class;
+        final Class<?> clazz = MultipleIdeEnablerTest.class;
         final byte[] original = loadClassBytes(clazz);
 
         // When
@@ -64,5 +65,20 @@ public class ColaTransformerTest {
         final String trace = traceBytecode(result);
         assertThat(trace, not(containsString("shouldBeRemoved1")));
         assertThat(trace, not(containsString("shouldBeRemoved2")));
+    }
+
+    @Test
+    public void shouldInjectErrorMethod() throws Exception {
+        // Given
+        final Class<?> clazz = InvalidTest.class;
+        final byte[] original = loadClassBytes(clazz);
+
+        // When
+        final byte[] result = uut.transform(ColaTransformer.class.getClassLoader(), clazz.getName(), clazz, null, original);
+
+        // Then
+        assertThat(result, not(equalTo(original)));
+        final String trace = traceBytecode(result);
+        assertThat(trace, containsString("Cola Tests : Compilation Errors"));
     }
 }
