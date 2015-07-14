@@ -13,6 +13,8 @@ import java.util.List;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
+import com.github.bmsantos.core.cola.exceptions.InvalidFeature;
+import com.github.bmsantos.core.cola.injector.ErrorsClassVisitor;
 import com.github.bmsantos.core.cola.injector.InfoClassVisitor;
 import com.github.bmsantos.core.cola.injector.InjectorClassVisitor;
 import com.github.bmsantos.core.cola.injector.MethodRemoverClassVisitor;
@@ -44,24 +46,34 @@ public class ColaTransformer implements ClassFileTransformer {
             info.getIdeEnabledMethods().addAll(methodsToRemove);
 
             if (!info.getIdeEnabledMethods().isEmpty()) {
-                return removeMethods(writer, info);
+                return removeMethods(writer.toByteArray(), info);
             }
 
             if (!info.getFeatures().isEmpty() || !info.getIdeEnabledMethods().isEmpty()) {
                 return writer.toByteArray();
             }
+        } catch (final InvalidFeature i) {
+            return injectErrorNotificationMethod(classfileBuffer, i);
         } catch (final Throwable t) {
-            // empty
+            return classfileBuffer;
         }
 
         return classfileBuffer;
     }
 
-    private byte[] removeMethods(final ClassWriter writer, final InfoClassVisitor info) {
-        final ClassReader rreader = new ClassReader(writer.toByteArray());
-        final ClassWriter rwriter = new ClassWriter(rreader, WRITER_FLAGS);
-        final MethodRemoverClassVisitor remover = new MethodRemoverClassVisitor(rwriter, info.getIdeEnabledMethods());
-        rreader.accept(remover, 0);
-        return rwriter.toByteArray();
+    private byte[] removeMethods(final byte[] bytes, final InfoClassVisitor info) {
+        final ClassReader reader = new ClassReader(bytes);
+        final ClassWriter writer = new ClassWriter(reader, WRITER_FLAGS);
+        final MethodRemoverClassVisitor remover = new MethodRemoverClassVisitor(writer, info.getIdeEnabledMethods());
+        reader.accept(remover, 0);
+        return writer.toByteArray();
+    }
+
+    private byte[] injectErrorNotificationMethod(final byte[] bytes, final Throwable t) {
+        final ClassReader reader = new ClassReader(bytes);
+        final ClassWriter writer = new ClassWriter(reader, WRITER_FLAGS);
+        final ErrorsClassVisitor injector = new ErrorsClassVisitor(writer, t.getMessage());
+        reader.accept(injector, 0);
+        return writer.toByteArray();
     }
 }

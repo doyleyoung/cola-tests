@@ -6,10 +6,16 @@ import org.junit.Test;
 
 import com.github.bmsantos.core.cola.story.annotations.IdeEnabler;
 
-public class IdeEnablerClass {
+public class MultipleIdeEnablerTest {
     @IdeEnabler
     @Test
-    public void shouldBeRemoved() {
+    public void shouldBeRemoved1() {
+        fail("This method should be removed");
+    }
+
+    @IdeEnabler
+    @Test
+    public void shouldBeRemoved2() {
         fail("This method should be removed");
     }
 }

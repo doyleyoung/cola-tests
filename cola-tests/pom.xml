@@ -96,8 +96,12 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.17</version>
                 <configuration>
+                    <includes>
+                        <include>com/github/bmsantos/**/*.java</include>
+                    </includes>
                     <excludes>
                         <exclude>cola/ide/*.java</exclude>
+                        <exclude>test/utils/*.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

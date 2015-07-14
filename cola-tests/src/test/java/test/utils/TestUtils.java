@@ -28,9 +28,7 @@ public class TestUtils {
         final ClassWriter cw = new ClassWriter(cr, WRITER_FLAGS);
         final InfoClassVisitor classVisitor = new InfoClassVisitor(cw, Thread.currentThread().getContextClassLoader());
 
-        // When
         cr.accept(classVisitor, 0);
-
         return classVisitor.getFeatures();
     }
 

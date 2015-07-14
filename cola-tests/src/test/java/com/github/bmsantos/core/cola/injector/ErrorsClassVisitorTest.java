@@ -1,8 +1,6 @@
 package com.github.bmsantos.core.cola.injector;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
@@ -19,12 +17,12 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
-public class MethodRemoverClassVisitorTest {
+public class ErrorsClassVisitorTest {
 
-    private static final String METHOD_TO_REMOVE = "shouldBeRemoved";
+    private static final String ERROR_MESSAGE = "THIS IS AN ERROR MESSAGE";
 
     private ClassReader cr;
-    private MethodRemoverClassVisitor uut;
+    private ErrorsClassVisitor uut;
     private ByteArrayOutputStream capture;
 
     @Before
@@ -33,16 +31,16 @@ public class MethodRemoverClassVisitorTest {
     }
 
     @Test
-    public void shouldRetrieveDefaultField() throws IOException {
+    public void shouldInjectErrorMethod() throws IOException {
         // Given
-        final ClassVisitor cw = initClassWriterFor("test.utils.IdeEnablerTest");
-        uut = new MethodRemoverClassVisitor(cw, asList(METHOD_TO_REMOVE));
+        final ClassVisitor cw = initClassWriterFor("test.utils.InvalidTest");
+        uut = new ErrorsClassVisitor(cw, ERROR_MESSAGE);
 
         // When
         cr.accept(uut, 0);
 
         // Then
-        assertThat(capture.toString(), not(containsString(METHOD_TO_REMOVE)));
+        assertThat(capture.toString(), containsString(ERROR_MESSAGE));
     }
 
     private ClassVisitor initClassWriterFor(final String className) throws IOException {
