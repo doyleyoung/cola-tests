@@ -1,5 +1,6 @@
 package com.github.bmsantos.core.cola.instrument;
 
+import static java.lang.System.setProperty;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
@@ -20,6 +21,7 @@ public class ColaTransformerTest {
 
     @Before
     public void setUp() {
+        setProperty("colaTests", ".*Test");
         uut = new ColaTransformer();
     }
 
@@ -80,5 +82,33 @@ public class ColaTransformerTest {
         assertThat(result, not(equalTo(original)));
         final String trace = traceBytecode(result);
         assertThat(trace, containsString("Cola Tests : Compilation Errors"));
+    }
+
+    @Test
+    public void shouldSetColaTestsFilterProperty() throws Exception {
+        // Given
+        setProperty("colaTests", ".*Foo");
+        final Class<?> clazz = StoriesFieldTest.class;
+        final byte[] original = loadClassBytes(clazz);
+
+        // When
+        final byte[] result = uut.transform(ColaTransformer.class.getClassLoader(), clazz.getName(), clazz, null, original);
+
+        // Then
+        assertThat(result, equalTo(original));
+    }
+
+    @Test
+    public void shouldAllowMultipleFilters() throws Exception {
+        // Given
+        setProperty("colaTests", ".*FooTest,.*FieldTest");
+        final Class<?> clazz = StoriesFieldTest.class;
+        final byte[] original = loadClassBytes(clazz);
+
+        // When
+        final byte[] result = uut.transform(ColaTransformer.class.getClassLoader(), clazz.getName(), clazz, null, original);
+
+        // Then
+        assertThat(result, not(equalTo(original)));
     }
 }

@@ -19,6 +19,7 @@ import static com.github.bmsantos.core.cola.config.ConfigurationManager.config;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryFileExists;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOsClass;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
+import static com.github.bmsantos.core.cola.utils.ColaUtils.resourceClassToResource;
 import static java.lang.String.format;
 import static org.codehaus.plexus.util.IOUtil.toByteArray;
 
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import com.github.bmsantos.core.cola.exceptions.ColaExecutionException;
 import com.github.bmsantos.core.cola.instrument.ColaTransformer;
 import com.github.bmsantos.core.cola.provider.IColaProvider;
+import com.github.bmsantos.core.cola.utils.ColaUtils;
 
 public class ColaMain {
 
@@ -140,7 +142,7 @@ public class ColaMain {
 
         final ColaTransformer transformer = new ColaTransformer();
         transformer.removeMethod(methodToRemove);
-        final byte[] instrumented = transformer.transform(provider.getTargetClassLoader(), null, null, null, toByteArray(in));
+        final byte[] instrumented = transformer.transform(provider.getTargetClassLoader(), resourceClassToResource(className), null, null, toByteArray(in));
 
         final File file = new File(filePath);
         try (final DataOutputStream dout = new DataOutputStream(new FileOutputStream(file))) {

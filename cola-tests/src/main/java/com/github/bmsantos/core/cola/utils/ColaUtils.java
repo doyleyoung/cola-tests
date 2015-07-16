@@ -80,6 +80,10 @@ public final class ColaUtils {
         return result;
     }
 
+    public static String resourceClassToResource(final String resourceClass) {
+        return resourceClass.replace(CLASS_EXT, "");
+    }
+
     public static boolean binaryFileExists(final String dir, final String clazz) {
         return isSet(dir) && isSet(clazz) && new File(dir + separator + binaryToOsClass(clazz)).exists();
     }

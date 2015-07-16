@@ -194,9 +194,9 @@ public class ColaMainTest {
     @Test
     public void shouldCollectFailureHistory() {
         // Given
-        classes.add(toOSPath("this/path/takes/to/nowhere/NotFountTest1.class"));
-        classes.add(toOSPath("this/path/takes/to/nowhere/NotFountTest2.class"));
-        classes.add(toOSPath("this/path/takes/to/nowhere/NotFountTest3.class"));
+        classes.add(toOSPath("this/path/takes/to/nowhere/NotFount1Test.class"));
+        classes.add(toOSPath("this/path/takes/to/nowhere/NotFount2Test.class"));
+        classes.add(toOSPath("this/path/takes/to/nowhere/NotFount3Test.class"));
 
         // When
         try {
