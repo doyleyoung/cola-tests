@@ -1,5 +1,6 @@
 package com.github.bmsantos.core.cola.instrument;
 
+import static java.lang.System.getProperty;
 import static java.util.Arrays.copyOf;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
@@ -32,6 +33,10 @@ public class ColaTransformer implements ClassFileTransformer {
     @Override
     public byte[] transform(final ClassLoader classLoader, final String className, final Class<?> classBeingRedefined,
         final ProtectionDomain protectionDomain, final byte[] classfileBuffer) throws IllegalClassFormatException {
+
+        if (!isTestClass(className)) {
+            return classfileBuffer;
+        }
 
         final byte[] instrumentedBuffer = copyOf(classfileBuffer, classfileBuffer.length);
 
@@ -75,5 +80,15 @@ public class ColaTransformer implements ClassFileTransformer {
         final ErrorsClassVisitor injector = new ErrorsClassVisitor(writer, t.getMessage());
         reader.accept(injector, 0);
         return writer.toByteArray();
+    }
+
+    private boolean isTestClass(final String className) {
+        final String filters = getProperty("colaTests", ".*Test");
+        for (final String filter : filters.split(",")) {
+            if (className.matches(filter)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
