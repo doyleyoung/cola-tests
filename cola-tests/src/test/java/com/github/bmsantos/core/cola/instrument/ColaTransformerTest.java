@@ -85,7 +85,7 @@ public class ColaTransformerTest {
     }
 
     @Test
-    public void shouldSetColaTestsFilterProperty() throws Exception {
+    public void shouldSetColaTestsFilterPropertyAndSkipNonmatchingClass() throws Exception {
         // Given
         setProperty("colaTests", ".*Foo");
         final Class<?> clazz = StoriesFieldTest.class;
@@ -96,6 +96,20 @@ public class ColaTransformerTest {
 
         // Then
         assertThat(result, equalTo(original));
+    }
+    
+    @Test
+    public void shouldSetColaTestsFilterPropertyAndFilterMatchingClass() throws Exception {
+        // Given
+        setProperty("colaTests", ".*FieldTest");
+        final Class<?> clazz = StoriesFieldTest.class;
+        final byte[] original = loadClassBytes(clazz);
+
+        // When
+        final byte[] result = uut.transform(ColaTransformer.class.getClassLoader(), clazz.getName(), clazz, null, original);
+
+        // Then
+        assertThat(result, not(equalTo(original)));
     }
 
     @Test
