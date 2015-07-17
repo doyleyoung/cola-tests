@@ -1,6 +1,7 @@
 package com.github.bmsantos.core.cola.main;
 
 import static com.github.bmsantos.core.cola.config.ConfigurationManager.config;
+import static com.github.bmsantos.core.cola.utils.ColaUtils.toOSPath;
 import static java.io.File.separator;
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
@@ -10,8 +11,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static uk.org.lidalia.slf4jtest.LoggingEvent.error;
-import static uk.org.lidalia.slf4jtest.LoggingEvent.info;
-import static uk.org.lidalia.slf4jtest.LoggingEvent.warn;
 
 import java.io.File;
 import java.net.URL;
@@ -28,10 +27,8 @@ import uk.org.lidalia.slf4jtest.TestLogger;
 import uk.org.lidalia.slf4jtest.TestLoggerFactory;
 
 import com.codeaffine.test.ConditionalIgnoreRule;
-import com.codeaffine.test.ConditionalIgnoreRule.ConditionalIgnore;
 import com.github.bmsantos.core.cola.exceptions.ColaExecutionException;
 import com.github.bmsantos.core.cola.provider.IColaProvider;
-import com.github.bmsantos.core.cola.utils.RunningOnWindows;
 
 public class ColaMainTest {
 
@@ -39,8 +36,6 @@ public class ColaMainTest {
     public ConditionalIgnoreRule rule = new ConditionalIgnoreRule();
 
     private static final String TARGET_DIR = toOSPath("target/test-classes");
-    private static final String NO_IDE_CLASS = null;
-    private static final String NO_IDE_CLASS_METHOD = null;
 
     private final TestLogger logger = TestLoggerFactory.getTestLogger(ColaMain.class);
 
@@ -61,7 +56,7 @@ public class ColaMainTest {
         provider.setTargetClasses(classes);
         provider.setTargetClassLoader(getClass().getClassLoader());
 
-        uut = new ColaMain(NO_IDE_CLASS, NO_IDE_CLASS_METHOD);
+        uut = new ColaMain();
     }
 
     @Test
@@ -81,88 +76,6 @@ public class ColaMainTest {
 
         // Then
         assertTrue(true);
-    }
-
-    @Test
-    public void shouldNotProcessMissingIdeBaseClassTest() throws ColaExecutionException {
-        // When
-        uut.execute(provider);
-
-        // Then
-        assertThat(logger.getLoggingEvents(), hasItem(warn(config.warn("missing.ide.test"))));
-    }
-
-    @Test
-    public void shouldNotProcessMissingIdeBaseClass() throws ColaExecutionException {
-        // When
-        uut.execute(provider);
-
-        // Then
-        assertThat(logger.getAllLoggingEvents(), hasItem(info(config.info("missing.ide.class"))));
-    }
-
-    @Test
-    @ConditionalIgnore(condition = RunningOnWindows.class)
-    public void shouldNotProcessDefaultIdeBaseClass() throws ColaExecutionException {
-        // Given
-        final File ideClass = new File(TARGET_DIR + separator + toOSPath(config.getProperty("default.ide.class"))
-            + ".class");
-        final File renamedIdeClass = new File(TARGET_DIR + separator
-            + toOSPath(config.getProperty("default.ide.class")) + "_renamed");
-        ideClass.renameTo(renamedIdeClass);
-
-        // When
-        uut.execute(provider);
-        renamedIdeClass.renameTo(ideClass);
-
-        // Then
-        assertThat(logger.getLoggingEvents(), hasItem(info(config.info("missing.default.ide.class"))));
-    }
-
-    @Test
-    public void shouldProcessDefaultIdeBaseClass() throws ColaExecutionException {
-        // When
-        uut.execute(provider);
-
-        // Then
-        assertThat(logger.getLoggingEvents(), hasItem(info(config.info("found.default.ide.class"))));
-    }
-
-    @Test
-    public void shouldFindProvidedIdeBaseClass() throws ColaExecutionException {
-        // Given
-        provider.setTargetClassLoader(getClass().getClassLoader());
-
-        final String ideClass = toOSPath(config.getProperty("default.ide.class"));
-
-        uut = new ColaMain(ideClass, NO_IDE_CLASS_METHOD);
-
-        // When
-        uut.execute(provider);
-
-        // Then
-        assertThat(logger.getLoggingEvents(), hasItem(info(config.info("processing") + TARGET_DIR + separator
-            + ideClass + ".class")));
-    }
-
-    // In order to have the following test pass the class has to be recompiled.
-    @Test
-    public void shouldFindProvidedIdeBaseClassTest() throws ColaExecutionException {
-        // Given
-        provider.setTargetClassLoader(getClass().getClassLoader());
-
-        final String ideClass = toOSPath(config.getProperty("default.ide.class"));
-        final File testClassFile = new File(TARGET_DIR + separator + ideClass + ".class");
-        final long initialSize = testClassFile.length();
-
-        uut = new ColaMain(ideClass, "toBeRemoved");
-
-        // When
-        uut.execute(provider);
-
-        // Then
-        final long finalSize = testClassFile.length();
-        assertThat(initialSize > finalSize, is(true));
     }
 
     @Test
@@ -209,6 +122,7 @@ public class ColaMainTest {
         assertThat(logger.getLoggingEvents(), hasItem(error(format(config.error("failed.tests"), 3, 4))));
     }
 
+    // This test requires a clean build
     @Test
     public void shouldHandlePreviouslyProcessedTestClasses() throws ColaExecutionException {
         // Process the class once
@@ -224,10 +138,6 @@ public class ColaMainTest {
 
         // Then
         assertThat(finalSize, equalTo(initialSize));
-    }
-
-    private static String toOSPath(final String value) {
-        return value.replace("/", separator);
     }
 
     private class StubProvider implements IColaProvider {

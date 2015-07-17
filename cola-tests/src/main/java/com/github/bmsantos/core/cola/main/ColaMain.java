@@ -16,8 +16,6 @@
 package com.github.bmsantos.core.cola.main;
 
 import static com.github.bmsantos.core.cola.config.ConfigurationManager.config;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryFileExists;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOsClass;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.resourceClassToResource;
 import static java.lang.String.format;
@@ -36,22 +34,14 @@ import org.slf4j.LoggerFactory;
 import com.github.bmsantos.core.cola.exceptions.ColaExecutionException;
 import com.github.bmsantos.core.cola.instrument.ColaTransformer;
 import com.github.bmsantos.core.cola.provider.IColaProvider;
-import com.github.bmsantos.core.cola.utils.ColaUtils;
 
 public class ColaMain {
 
     private static Logger log = LoggerFactory.getLogger(ColaMain.class);
 
     private IColaProvider provider;
-    private String ideBaseClass;
-    private String ideTestMethod;
 
     private List<String> failures;
-
-    public ColaMain(final String ideBaseClass, final String ideTestMethod) {
-        this.ideBaseClass = ideBaseClass;
-        this.ideTestMethod = ideTestMethod;
-    }
 
     public List<String> getFailures() {
         return failures;
@@ -71,15 +61,6 @@ public class ColaMain {
             return;
         }
 
-        if (isValidIdeBaseClass()) {
-            try {
-                ideBaseClass = processIdeBaseClass();
-                targetClasses.remove(ideBaseClass);
-            } catch (final Throwable t) {
-                log.info(config.error("failed.ide"), t);
-            }
-        }
-
         for (final String className : targetClasses) {
             try {
                 processClass(className, null);
@@ -97,39 +78,6 @@ public class ColaMain {
 
             throw new ColaExecutionException(config.error("processing"));
         }
-    }
-
-    private String processIdeBaseClass() throws Exception {
-
-        ideBaseClass = binaryToOsClass(ideBaseClass);
-
-        processClass(ideBaseClass, ideTestMethod);
-
-        return ideBaseClass;
-    }
-
-    private boolean isValidIdeBaseClass() {
-        if (!isSet(ideTestMethod)) {
-            log.warn(config.warn("missing.ide.test"));
-            ideTestMethod = config.getProperty("default.ide.test");
-        }
-
-        if (binaryFileExists(provider.getTargetDirectory(), ideBaseClass)) {
-            return true;
-        } else {
-            // Try default
-            log.info(config.info("missing.ide.class"));
-
-            ideBaseClass = config.getProperty("default.ide.class");
-            if (binaryFileExists(provider.getTargetDirectory(), ideBaseClass)) {
-                log.info(config.info("found.default.ide.class"));
-                return true;
-            } else {
-                log.info(config.info("missing.default.ide.class"));
-            }
-        }
-
-        return false;
     }
 
     private void processClass(final String className, final String methodToRemove)
