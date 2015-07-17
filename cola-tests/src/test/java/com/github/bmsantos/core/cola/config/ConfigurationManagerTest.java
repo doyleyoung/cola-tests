@@ -9,8 +9,8 @@ import org.junit.Test;
 public class ConfigurationManagerTest {
 
     private static final String ERROR_PROCESSING = "There were errors while processing COLA JUnit Tests.";
-    private static final String WARN_MISSING_IDE_TEST = "ideBaseClassTest method not set. Will look for default JUnit Test named 'iWillBeRemoved' method and remove if available.";
-    private static final String INFO_DEFAULT_CLASS = "Found default ideBaseClass class. Proceeding...";
+    private static final String WARN_TEST = "warning...";
+    private static final String INFO_TEST = "info...";
 
     @Test
     public void shouldLoadProperties() {
@@ -33,18 +33,18 @@ public class ConfigurationManagerTest {
     @Test
     public void shouldGetWarn() {
         // When
-        final String name = config.warn("missing.ide.test");
+        final String name = config.warn("test");
 
         // Then
-        assertThat(name, is(WARN_MISSING_IDE_TEST));
+        assertThat(name, is(WARN_TEST));
     }
 
     @Test
     public void shouldGetInfo() {
         // When
-        final String name = config.info("found.default.ide.class");
+        final String name = config.info("test");
 
         // Then
-        assertThat(name, is(INFO_DEFAULT_CLASS));
+        assertThat(name, is(INFO_TEST));
     }
 }

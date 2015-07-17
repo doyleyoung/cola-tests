@@ -41,12 +41,6 @@ public class Application {
         description = "Base directory containing compiled java packages and classes (required)")
     private String targetDirectory;
 
-    @Parameter(names = { "-b", "--ideBaseClass" }, description = "IDE base test class if required")
-    private String ideBaseClass;
-
-    @Parameter(names = { "-m", "--ideBaseClassTest" }, description = "IDE base test class method to be removed")
-    private String ideBaseClassTest;
-
     public static void main(final String[] args) {
 
         final Application app = new Application();
@@ -60,7 +54,7 @@ public class Application {
             final CommandLineColaProvider provider = new CommandLineColaProvider(app.targetDirectory);
 
             try (final URLClassLoader loader = provider.getTargetClassLoader()) {
-                main = new ColaMain(app.ideBaseClass, app.ideBaseClassTest);
+                main = new ColaMain();
                 main.execute(provider);
             }
 
