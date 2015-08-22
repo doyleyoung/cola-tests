@@ -1,5 +1,7 @@
 package com.github.bmsantos.core.cola.instrument;
 
+import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOS;
+import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
 import static java.lang.System.getProperty;
 import static java.util.Arrays.copyOf;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
@@ -41,7 +43,6 @@ public class ColaTransformer implements ClassFileTransformer {
         final byte[] instrumentedBuffer = copyOf(classfileBuffer, classfileBuffer.length);
 
         try {
-
             final ClassReader reader = new ClassReader(instrumentedBuffer);
             final ClassWriter writer = new ClassWriter(reader, WRITER_FLAGS);
             final InfoClassVisitor info = new InfoClassVisitor(writer, classLoader);
@@ -83,12 +84,22 @@ public class ColaTransformer implements ClassFileTransformer {
     }
 
     private boolean isTestClass(final String className) {
-        final String filters = getProperty("colaTests", ".*Test");
+        final String test = convertToRegexPath(getProperty("test", ""));
+        final String itTest = convertToRegexPath(getProperty("it.test", ""));
+
+        final String filters = isSet(test) ?
+          (isSet(itTest) ? test + "," + itTest : test) :
+          (isSet(itTest) ? itTest : ".*Test");
+
         for (final String filter : filters.split(",")) {
             if (className.matches(filter)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private String convertToRegexPath(final String binaryPath) {
+        return binaryToOS(binaryPath).replace("*", ".*");
     }
 }

@@ -21,7 +21,8 @@ public class ColaTransformerTest {
 
     @Before
     public void setUp() {
-        setProperty("colaTests", ".*Test");
+        setProperty("test", "");
+        setProperty("it.test", "");
         uut = new ColaTransformer();
     }
 
@@ -85,9 +86,9 @@ public class ColaTransformerTest {
     }
 
     @Test
-    public void shouldSetColaTestsFilterPropertyAndSkipNonmatchingClass() throws Exception {
+    public void shouldSetMavenTestFilterPropertyAndSkipNonmatchingClass() throws Exception {
         // Given
-        setProperty("colaTests", ".*Foo");
+        setProperty("test", "*Foo");
         final Class<?> clazz = StoriesFieldTest.class;
         final byte[] original = loadClassBytes(clazz);
 
@@ -97,11 +98,11 @@ public class ColaTransformerTest {
         // Then
         assertThat(result, equalTo(original));
     }
-    
+
     @Test
-    public void shouldSetColaTestsFilterPropertyAndFilterMatchingClass() throws Exception {
+    public void shouldSetMavenTestFilterPropertyAndProcessMatchingClass() throws Exception {
         // Given
-        setProperty("colaTests", ".*FieldTest");
+        setProperty("test", "*FieldTest");
         final Class<?> clazz = StoriesFieldTest.class;
         final byte[] original = loadClassBytes(clazz);
 
@@ -115,12 +116,73 @@ public class ColaTransformerTest {
     @Test
     public void shouldAllowMultipleFilters() throws Exception {
         // Given
-        setProperty("colaTests", ".*FooTest,.*FieldTest");
+        setProperty("test", "*FooTest,*FieldTest");
         final Class<?> clazz = StoriesFieldTest.class;
         final byte[] original = loadClassBytes(clazz);
 
         // When
         final byte[] result = uut.transform(ColaTransformer.class.getClassLoader(), clazz.getName(), clazz, null, original);
+
+        // Then
+        assertThat(result, not(equalTo(original)));
+    }
+
+    @Test
+    public void shouldSetMavenItTestFilterPropertyAndSkipNonmatchingClass() throws Exception {
+        // Given
+        setProperty("it.test", "*Foo");
+        final Class<?> clazz = StoriesFieldTest.class;
+        final byte[] original = loadClassBytes(clazz);
+
+        // When
+        final byte[] result = uut.transform(ColaTransformer.class.getClassLoader(), clazz.getName(), clazz, null,
+            original);
+
+        // Then
+        assertThat(result, equalTo(original));
+    }
+
+    @Test
+    public void shouldSetMavenItTestFilterPropertyAndProcessMatchingClass() throws Exception {
+        // Given
+        setProperty("it.test", "*FieldTest");
+        final Class<?> clazz = StoriesFieldTest.class;
+        final byte[] original = loadClassBytes(clazz);
+
+        // When
+        final byte[] result = uut.transform(ColaTransformer.class.getClassLoader(), clazz.getName(), clazz, null,
+            original);
+
+        // Then
+        assertThat(result, not(equalTo(original)));
+    }
+
+    @Test
+    public void shouldAllowMultipleItTestFilters() throws Exception {
+        // Given
+        setProperty("it.test", "*FooTest,*FieldTest");
+        final Class<?> clazz = StoriesFieldTest.class;
+        final byte[] original = loadClassBytes(clazz);
+
+        // When
+        final byte[] result = uut.transform(ColaTransformer.class.getClassLoader(), clazz.getName(), clazz, null,
+            original);
+
+        // Then
+        assertThat(result, not(equalTo(original)));
+    }
+
+    @Test
+    public void shouldConjugateMultipleItTestFilters() throws Exception {
+        // Given
+        setProperty("test", "*FooTest");
+        setProperty("it.test", "*FieldTest");
+        final Class<?> clazz = StoriesFieldTest.class;
+        final byte[] original = loadClassBytes(clazz);
+
+        // When
+        final byte[] result = uut.transform(ColaTransformer.class.getClassLoader(), clazz.getName(), clazz, null,
+            original);
 
         // Then
         assertThat(result, not(equalTo(original)));
