@@ -4,6 +4,7 @@ import static com.github.bmsantos.core.cola.config.ConfigurationManager.config;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.toOSPath;
 import static java.io.File.separator;
 import static java.lang.String.format;
+import static java.lang.System.setProperty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
@@ -45,11 +46,15 @@ public class ColaMainTest {
     private List<String> classes;
 
     private final String testClass = toOSPath("cola/ide/AnotherColaTest.class");
+    private final String testClass1 = toOSPath("cola/ide/AnotherColaTest1.class");
 
     @Before
     public void setUp() {
+        setProperty("test", "");
+
         classes = new ArrayList<>();
         classes.add(testClass);
+        classes.add(testClass1);
 
         provider = new StubProvider();
         provider.setTargetDirectory(TARGET_DIR);
@@ -78,10 +83,12 @@ public class ColaMainTest {
         assertTrue(true);
     }
 
+    // This test requires a clean build
     @Test
     public void shouldProcessTestClasses() throws ColaExecutionException {
         // Given
-        final File testClassFile = new File(TARGET_DIR + separator + testClass);
+        setProperty("test", "*Test1");
+        final File testClassFile = new File(TARGET_DIR + separator + testClass1);
         final long initialSize = testClassFile.length();
 
         // When
@@ -119,7 +126,7 @@ public class ColaMainTest {
 
         // Then
         assertThat(uut.getFailures().size(), is(3));
-        assertThat(logger.getLoggingEvents(), hasItem(error(format(config.error("failed.tests"), 3, 4))));
+        assertThat(logger.getLoggingEvents(), hasItem(error(format(config.error("failed.tests"), 3, 5))));
     }
 
     // This test requires a clean build
