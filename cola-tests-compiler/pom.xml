@@ -19,12 +19,12 @@
         <dependency>
             <groupId>com.github.bmsantos</groupId>
             <artifactId>cola-tests</artifactId>
-            <version>0.4.0</version>
+            <version>0.4.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.bmsantos</groupId>
             <artifactId>cola-tests-reports</artifactId>
-            <version>0.4.0</version>
+            <version>0.4.1-SNAPSHOT</version>
         </dependency>
         <!-- 3rd Party dependencies -->
         <dependency>

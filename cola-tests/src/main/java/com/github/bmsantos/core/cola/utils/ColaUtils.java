@@ -21,6 +21,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.util.Iterator;
 import java.util.List;
 
 public final class ColaUtils {
@@ -96,4 +97,22 @@ public final class ColaUtils {
         return encode(original, UTF_8.name()).replaceAll("\\+", "%20");
     }
 
+    public static String join(final String separator, final List<String> list) {
+        final Iterator<String> it = list.iterator();
+        String result = "";
+        while (it.hasNext()) {
+            result += it.next() + (it.hasNext() ? separator : "");
+        }
+        return result;
+    }
+
+    public static String joinStrings(final String separator, final String... entries) {
+        String result = "";
+        for (final String entry : entries) {
+            if (entry != null && !entry.isEmpty()) {
+                result += result.isEmpty() ? entry : separator + entry;
+            }
+        }
+        return result;
+    }
 }
