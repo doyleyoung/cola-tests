@@ -33,7 +33,9 @@ public class TagFilter implements Filter {
         if (statement instanceof FeatureDetails) {
             return filterFeature((FeatureDetails) statement);
         }
-        return filterScenario((ScenarioDetails) statement);
+
+        final ScenarioDetails scenario = (ScenarioDetails) statement;
+        return isSkippedScenario(scenario) || (isGroupedExecution && !isScenarioInGroup(scenario));
     }
 
     private boolean filterFeature(final FeatureDetails feature) {
@@ -44,8 +46,7 @@ public class TagFilter implements Filter {
         final Iterator<ScenarioDetails> it = feature.getScenarios().iterator();
         while (it.hasNext()) {
             final ScenarioDetails next = it.next();
-            if ((isGroupedExecution && !isGrouped(feature.getFeature().getTags()) && filterScenario(next)) ||
-                (!isGroupedExecution && filterScenario(next))) {
+            if (isSkippedScenario(next) || (isGroupedExecution && !isScenarioGrouped(feature, next))) {
                 it.remove();
             }
         }
@@ -53,8 +54,20 @@ public class TagFilter implements Filter {
         return feature.getScenarios().isEmpty();
     }
 
-    private boolean filterScenario(final ScenarioDetails scenario) {
-        return skipped(scenario.getScenario().getTags()) || (isGroupedExecution && !isGrouped(scenario.getScenario().getTags()));
+    private boolean isScenarioGrouped(final FeatureDetails feature, final ScenarioDetails scenario) {
+        return isFeatureInGroup(feature) || isScenarioInGroup(scenario);
+    }
+
+    private boolean isFeatureInGroup(final FeatureDetails feature) {
+        return isGrouped(feature.getFeature().getTags());
+    }
+
+    private boolean isScenarioInGroup(final ScenarioDetails scenario) {
+        return isGrouped(scenario.getScenario().getTags());
+    }
+
+    private boolean isSkippedScenario(final ScenarioDetails scenario) {
+        return skipped(scenario.getScenario().getTags()); // || (isGroupedExecution && !isGrouped(scenario.getScenario().getTags()));
     }
 
     private boolean skipped(final List<Tag> tags) {
