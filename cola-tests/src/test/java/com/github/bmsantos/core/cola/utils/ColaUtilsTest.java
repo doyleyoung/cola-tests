@@ -1,15 +1,9 @@
 package com.github.bmsantos.core.cola.utils;
 
-import static com.github.bmsantos.core.cola.utils.ColaUtils.RESOURCE_SEPARATOR;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryFileExists;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOS;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToOsClass;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToResource;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.binaryToResourceClass;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.classToBinary;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.osToBinary;
+import static com.github.bmsantos.core.cola.utils.ColaUtils.*;
 import static java.io.File.separator;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -19,6 +13,8 @@ import java.util.List;
 import org.junit.Test;
 
 public class ColaUtilsTest {
+
+    public static final String STRING_SEPARATOR = ",";
 
     @Test
     public void shoulBeSet() {
@@ -234,6 +230,40 @@ public class ColaUtilsTest {
 
         // When - Then
         assertThat(binaryFileExists(targetDir, className), is(false));
+    }
+
+    @Test
+    public void shouldJoinStringList() {
+        // Given
+        final List<String> list = asList("ONE", "TWO", "THREE");
+
+        // When
+        final String result = join(STRING_SEPARATOR, list);
+
+        // Then
+        assertThat(result, is("ONE,TWO,THREE"));
+    }
+
+    @Test
+    public void shouldReturnEmptyStringOnEmplyList() {
+        // Given
+        final List<String> list = emptyList();
+
+        // When
+        final String result = join(STRING_SEPARATOR, list);
+
+        // Then
+        assertThat(result.isEmpty(), is(true));
+    }
+
+    @Test
+    public void shouldJoinStrings() {
+        // Given
+        // When
+        final String result = joinStrings(STRING_SEPARATOR, "", "ONE", "TWO");
+
+        // Then
+        assertThat(result, is("ONE,TWO"));
     }
 
     private String toOSPath(final String... parts) {
