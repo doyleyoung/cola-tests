@@ -16,15 +16,20 @@ import static java.util.Collections.emptyList;
 
 public class TagFilter implements Filter {
 
-    public static final String COLA_TAGS = "cola.group";
+    private static final String COLA_TAGS = "cola.group";
+    private static final String COLA_TAGS_EXCLUDED = "~" + COLA_TAGS;
     private static final String SKIP = "@skip";
     private List<String> colaTags = emptyList();
+    private List<String> excludedColaTags = emptyList();
     private boolean isGroupedExecution = false;
 
     public TagFilter() {
         if (getProperties().containsKey(COLA_TAGS)) {
             colaTags = asList(getProperty(COLA_TAGS).split(","));
             isGroupedExecution = true;
+        }
+        if (getProperties().containsKey(COLA_TAGS_EXCLUDED)) {
+            excludedColaTags = asList(getProperty(COLA_TAGS_EXCLUDED).split(","));
         }
     }
 
@@ -66,14 +71,18 @@ public class TagFilter implements Filter {
         return isGrouped(scenario.getScenario().getTags());
     }
 
+    private boolean isScenarioInExcludedGroup(final ScenarioDetails scenario) {
+        return isGroupExcluded(scenario.getScenario().getTags());
+    }
+
     private boolean isSkippedScenario(final ScenarioDetails scenario) {
-        return skipped(scenario.getScenario().getTags()); // || (isGroupedExecution && !isGrouped(scenario.getScenario().getTags()));
+        return skipped(scenario.getScenario().getTags()) || isScenarioInExcludedGroup(scenario);
     }
 
     private boolean skipped(final List<Tag> tags) {
         if (isSet(tags)) {
             for (final Tag tag : tags) {
-                if (tag.getName().toLowerCase().equals(SKIP)) {
+                if (tag.getName().toLowerCase().equals(SKIP) || excludedColaTags.contains(tag.getName().substring(1))) {
                     return true;
                 }
             }
@@ -85,6 +94,17 @@ public class TagFilter implements Filter {
         if (isSet(tags)) {
             for (final Tag tag : tags) {
                 if (colaTags.contains(tag.getName().substring(1))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isGroupExcluded(final List<Tag> tags) {
+        if (isSet(tags)) {
+            for (final Tag tag : tags) {
+                if (excludedColaTags.contains(tag.getName().substring(1))) {
                     return true;
                 }
             }
