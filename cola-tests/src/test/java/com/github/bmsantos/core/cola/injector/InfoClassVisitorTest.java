@@ -119,6 +119,16 @@ public class InfoClassVisitorTest {
         cr.accept(uut, 0);
     }
 
+    @Test(expected = InvalidFeature.class)
+    public void shouldFailToLoadInFeatureWithMalformedProjections() throws IOException {
+        // Given
+        final ClassWriter cw = initClassWriterFor("test.utils.MalformedProjectionTest");
+        uut = new InfoClassVisitor(cw, getClass().getClassLoader());
+
+        // When
+        cr.accept(uut, 0);
+    }
+
     @Test(expected = InvalidFeatureUri.class)
     public void shouldFailToLoadInvalidAnnotatedClass() throws IOException {
         // Given
