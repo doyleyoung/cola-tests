@@ -16,21 +16,16 @@
 package com.github.bmsantos.core.cola.injector;
 
 import static com.github.bmsantos.core.cola.filters.FilterProcessor.filtrate;
+import static java.util.Arrays.asList;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ASM4;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.RETURN;
-import gherkin.deps.com.google.gson.Gson;
-import gherkin.formatter.model.Step;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
 
 import com.github.bmsantos.core.cola.filters.Filter;
 import com.github.bmsantos.core.cola.filters.ReportFilter;
@@ -39,6 +34,10 @@ import com.github.bmsantos.core.cola.formatter.FeatureDetails;
 import com.github.bmsantos.core.cola.formatter.ProjectionValues;
 import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.formatter.ScenarioDetails;
+import gherkin.deps.com.google.gson.Gson;
+import gherkin.formatter.model.Step;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MethodVisitor;
 
 public class InjectorClassVisitor extends ClassVisitor {
 
@@ -47,7 +46,7 @@ public class InjectorClassVisitor extends ClassVisitor {
     private static final Pattern METHOD_NAME_PATTERN = Pattern.compile(".* : .*");
 
     private final InfoClassVisitor infoClassVisitor;
-    private final List<Filter> filters = Arrays.<Filter> asList(new TagFilter(), new ReportFilter());
+    private final List<Filter> filters = asList(new TagFilter(), new ReportFilter());
 
     public InjectorClassVisitor(final InfoClassVisitor infoClassVisitor) {
         super(ASM4, infoClassVisitor);

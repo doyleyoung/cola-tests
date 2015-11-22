@@ -25,6 +25,7 @@ public class TagFilterTest {
     @After
     public void tearDown() {
         getProperties().remove("cola.group");
+        getProperties().remove("~cola.group");
     }
 
     @Test
@@ -89,6 +90,34 @@ public class TagFilterTest {
 
         // Then
         assertThat(result, is(false));
+    }
+
+    @Test
+    public void shouldExcludeGroupByFeature() throws IOException {
+        // Given
+        getProperties().setProperty("~cola.group", "group");
+        uut = new TagFilter();
+        final FeatureDetails feature = loadFeatures("com.github.bmsantos.core.cola.filters.TagFilterTest$GroupFeatureClass").get(0);
+
+        // When
+        final boolean result = uut.filtrate(feature);
+
+        // Then
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void shouldExcludeGroupByScenario() throws IOException {
+        // Given
+        getProperties().setProperty("~cola.group", "group");
+        uut = new TagFilter();
+        final FeatureDetails feature = loadFeatures("com.github.bmsantos.core.cola.filters.TagFilterTest$GroupScenarioClass").get(0);
+
+        // When
+        final boolean result = uut.filtrate(feature);
+
+        // Then
+        assertThat(result, is(true));
     }
 
     private static class SkipFeatureClass {

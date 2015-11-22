@@ -1,26 +1,24 @@
 package com.github.bmsantos.core.cola.formatter;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import java.util.List;
+
 import gherkin.formatter.model.Comment;
 import gherkin.formatter.model.Examples;
 import gherkin.formatter.model.ExamplesTableRow;
-
-import java.util.Collections;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.github.bmsantos.core.cola.formatter.ProjectionValues;
-
 public class ProjectionValuesTest {
 
-    private static final List<Comment> NO_COMMENTS = Collections.<Comment> emptyList();
+    private static final List<Comment> NO_COMMENTS = emptyList();
 
     @Mock
     private Examples examples;
