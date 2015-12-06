@@ -14,7 +14,7 @@ public class StoryDependsOn extends Story {
     }
 
     public int howOften() {
-        // Reports the number that Story.class test was called.
+        // Reports the number of times that Story.class test was called.
         return timesCalled;
     }
 
