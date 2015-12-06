@@ -1,20 +1,22 @@
 package com.github.bmsantos.core.cola.story.processor;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static uk.org.lidalia.slf4jtest.LoggingEvent.warn;
+import static uk.org.lidalia.slf4jtest.TestLoggerFactory.getTestLogger;
 
 import org.junit.Test;
-
+import test.utils.Story;
+import test.utils.StoryDependsOn;
 import uk.org.lidalia.slf4jtest.TestLogger;
-import uk.org.lidalia.slf4jtest.TestLoggerFactory;
 
 public class StoryProcessorTest {
 
     private static final String FEATURE = "Feature";
     private static final String SCENARIO = "Scenario";
 
-    private final TestLogger logger = TestLoggerFactory.getTestLogger(StoryProcessor.class);
+    private final TestLogger logger = getTestLogger(StoryProcessor.class);
 
     @Test
     public void shouldLogOnIgnore() {
@@ -24,5 +26,31 @@ public class StoryProcessorTest {
         // Then
         assertThat(logger.getLoggingEvents(), hasItem(warn("Feature: " + FEATURE + " - Scenario: " + SCENARIO
             + " (@ignored)")));
+    }
+
+    @Test
+    public void shouldProcessStory() throws Throwable {
+        // Given
+        final Story story = new Story();
+
+        // When
+        StoryProcessor.process(FEATURE, SCENARIO, story.getStory(), null, null, story);
+
+        // Then
+        assertThat(story.wasCalled(), is(true));
+    }
+
+    @Test
+    public void shouldProcessDependsOn() throws Throwable {
+        // Given
+        final StoryDependsOn story = new StoryDependsOn();
+        StoryDependsOn.resetTimesCount();
+
+        // When
+        StoryProcessor.process(FEATURE, SCENARIO, story.getStory(), null, null, story);
+
+        // Then
+        assertThat(story.wasCalled(), is(true));
+        assertThat(story.howOften(), is(2));
     }
 }

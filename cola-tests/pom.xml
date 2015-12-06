@@ -34,12 +34,13 @@
             <artifactId>plexus-build-api</artifactId>
             <version>0.0.7</version>
         </dependency>
-
-        <!-- Test -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>provided</scope>
         </dependency>
+
+        <!-- Test -->
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-library</artifactId>
