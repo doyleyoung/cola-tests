@@ -18,8 +18,6 @@ package com.github.bmsantos.core.cola.story.processor;
 import static com.github.bmsantos.core.cola.report.ReportLoader.reportLoader;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
 import static java.util.Arrays.asList;
-import gherkin.deps.com.google.gson.Gson;
-import gherkin.deps.com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,14 +26,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.report.Report;
+import com.github.bmsantos.core.cola.story.annotations.DependsOn;
 import com.github.bmsantos.core.cola.story.annotations.Given;
 import com.github.bmsantos.core.cola.story.annotations.Then;
 import com.github.bmsantos.core.cola.story.annotations.When;
+import gherkin.deps.com.google.gson.Gson;
+import gherkin.deps.com.google.gson.reflect.TypeToken;
+import org.junit.runner.JUnitCore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StoryProcessor {
     private static final Logger log = LoggerFactory.getLogger(StoryProcessor.class);
@@ -55,6 +56,8 @@ public class StoryProcessor {
         final String projectionDetails, final String reports, final Object instance) throws Throwable {
 
         try {
+            invokeDependsOn(instance.getClass().getAnnotation(DependsOn.class));
+
             log.info("Feature: " + feature + " - Scenario: " + scenario);
             if (projectionDetails != null && !projectionDetails.isEmpty()) {
                 log.info(projectionDetails);
@@ -68,8 +71,8 @@ public class StoryProcessor {
             final Method[] methods = instance.getClass().getMethods();
             final String[] lines = story.split(NEW_LINE);
 
-            final List<MethodDetails> calls = new ArrayList<MethodDetails>();
-            MethodDetails found = null;
+            final List<MethodDetails> calls = new ArrayList<>();
+            MethodDetails found;
             String previousType = null;
             for (final String line : lines) {
 
@@ -81,7 +84,7 @@ public class StoryProcessor {
                         type = previousType;
                     } else {
                         logAndThrow("Invalid step: '" + line + "' - '" + type
-                            + "' step must be preceeded with a Given, When or Then step: ");
+                          + "' step must be preceeded with a Given, When or Then step: ");
                     }
                 } else {
                     previousType = type;
@@ -99,6 +102,7 @@ public class StoryProcessor {
             for (int i = 0; i < calls.size(); i++) {
                 log.info("> " + lines[i]);
                 final MethodDetails details = calls.get(i);
+                invokeDependsOn(details.getMethod().getAnnotation(DependsOn.class));
                 details.getMethod().invoke(instance, details.getArguments());
             }
         } catch (final InvocationTargetException ex) {
@@ -108,6 +112,7 @@ public class StoryProcessor {
             processReports(reports, t);
             throw t;
         }
+
         processReports(reports, null);
     }
 
@@ -173,4 +178,12 @@ public class StoryProcessor {
             }
         }
     }
+
+    private final static void invokeDependsOn(final DependsOn dependsOn) {
+        if (!isSet(dependsOn)) return;
+        for (final Class test : dependsOn.value()) {
+            new JUnitCore().run(test);
+        }
+    }
+
 }
