@@ -10,7 +10,7 @@
 
     <groupId>com.github.bmsantos</groupId>
     <artifactId>cola-tests-base</artifactId>
-    <version>0.4.1-SNAPSHOT</version>
+    <version>0.5.0</version>
     <packaging>pom</packaging>
 
     <name>cola-tests-base</name>
