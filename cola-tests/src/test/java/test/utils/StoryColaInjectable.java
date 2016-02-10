@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.bmsantos.core.cola.instrument;
+package test.utils;
 
-import java.lang.instrument.Instrumentation;
+import com.github.bmsantos.core.cola.story.annotations.ColaInjectable;
+import com.github.bmsantos.core.cola.story.annotations.DependsOn;
 
-public class ColaInstrument {
-    public static void premain(final String agentArgs, final Instrumentation instrumentation) {
-        instrumentation.addTransformer(new ColaTransformer());
-    }
+@DependsOn(ColaInjectedTest.class)
+public class StoryColaInjectable extends Story {
 
-    public static void agentmain(final String agentArgs, final Instrumentation instrumentation) {
-        instrumentation.addTransformer(new ColaTransformer(), true);
-    }
+    @ColaInjectable("Zoltan")
+    public Number number1 = new Integer(101);
+
+    @ColaInjectable
+    public Number number2 = new Integer(102);
+
+    @ColaInjectable
+    public String string = "COLA Tests can inject state!";
 }

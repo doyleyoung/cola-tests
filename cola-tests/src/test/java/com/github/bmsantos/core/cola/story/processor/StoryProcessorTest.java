@@ -1,15 +1,15 @@
 package com.github.bmsantos.core.cola.story.processor;
 
+import org.junit.Test;
+import test.utils.Story;
+import test.utils.StoryDependsOn;
+import uk.org.lidalia.slf4jtest.TestLogger;
+
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static uk.org.lidalia.slf4jtest.LoggingEvent.warn;
 import static uk.org.lidalia.slf4jtest.TestLoggerFactory.getTestLogger;
-
-import org.junit.Test;
-import test.utils.Story;
-import test.utils.StoryDependsOn;
-import uk.org.lidalia.slf4jtest.TestLogger;
 
 public class StoryProcessorTest {
 

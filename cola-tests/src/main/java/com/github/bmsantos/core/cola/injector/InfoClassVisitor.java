@@ -1,3 +1,18 @@
+/*
+ * Copyright 2001-2005 The Apache Software Foundation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.github.bmsantos.core.cola.injector;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -26,6 +41,8 @@ public class InfoClassVisitor extends ClassVisitor {
     private static final String FEATURE_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/Feature;";
     private static final String FEATURES_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/Features;";
     private static final String IDE_ENABLER_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/IdeEnabler;";
+    private static final String COLA_INJECTED_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/ColaInjected;";
+    private static final String COLA_INJECTOR_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/ColaInjector;";
 
     private final String[] fileExtensions = { ".feature", ".stories", ".story", ".gherkin", "" };
 
@@ -34,13 +51,19 @@ public class InfoClassVisitor extends ClassVisitor {
     private String fieldName;
     private Object fieldValue;
     private String methodName;
+    private boolean isColaInjected = false;
 
     private final List<FeatureDetails> features = new ArrayList<>();
     private final List<String> ideEnabledMethods = new ArrayList<>();
+    private final List<String> colaInjectorFields = new ArrayList<>();
 
     public InfoClassVisitor(final ClassVisitor cv, final ClassLoader classLoader) {
         super(ASM4, cv);
         this.classLoader = classLoader;
+    }
+
+    public String getClassName() {
+        return className;
     }
 
     public List<FeatureDetails> getFeatures() {
@@ -49,6 +72,14 @@ public class InfoClassVisitor extends ClassVisitor {
 
     public List<String> getIdeEnabledMethods() {
         return ideEnabledMethods;
+    }
+
+    public List<String> getColaInjectorFields() {
+        return colaInjectorFields;
+    }
+
+    public boolean isColaInjected() {
+        return isColaInjected;
     }
 
     @Override
@@ -93,6 +124,8 @@ public class InfoClassVisitor extends ClassVisitor {
                     return super.visitArray(name);
                 }
             };
+        } else if (descriptor.equals(COLA_INJECTED_DESCRIPTOR)) {
+            isColaInjected = true;
         }
         return super.visitAnnotation(descriptor, runtimeVisible);
     }
@@ -113,6 +146,8 @@ public class InfoClassVisitor extends ClassVisitor {
             public AnnotationVisitor visitAnnotation(final String descriptor, final boolean runtimeVisible) {
                 if (descriptor.equals(FEATURE_DESCRIPTOR)) {
                     features.add(parseFeature(fieldName, fieldValue));
+                } else if (descriptor.equals(COLA_INJECTOR_DESCRIPTOR)) {
+                    colaInjectorFields.add(fieldName);
                 }
                 return super.visitAnnotation(descriptor, runtimeVisible);
             }

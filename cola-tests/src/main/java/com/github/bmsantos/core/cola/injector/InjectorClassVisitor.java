@@ -15,14 +15,6 @@
  */
 package com.github.bmsantos.core.cola.injector;
 
-import static com.github.bmsantos.core.cola.filters.FilterProcessor.filtrate;
-import static java.util.Arrays.asList;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ASM4;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.RETURN;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -38,6 +30,14 @@ import gherkin.deps.com.google.gson.Gson;
 import gherkin.formatter.model.Step;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
+
+import static com.github.bmsantos.core.cola.filters.FilterProcessor.filtrate;
+import static java.util.Arrays.asList;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ASM4;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.RETURN;
 
 public class InjectorClassVisitor extends ClassVisitor {
 
@@ -58,7 +58,13 @@ public class InjectorClassVisitor extends ClassVisitor {
         if (METHOD_NAME_PATTERN.matcher(name).matches()) {
             return null;
         }
-        return super.visitMethod(access, name, desc, signature, exceptions);
+
+        final MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+        if (name.equals("<init>") &&
+          (!infoClassVisitor.getColaInjectorFields().isEmpty() || infoClassVisitor.isColaInjected())) {
+            return new ColaInjectableMethodVisitor(mv, infoClassVisitor);
+        }
+        return mv;
     }
 
     @Override

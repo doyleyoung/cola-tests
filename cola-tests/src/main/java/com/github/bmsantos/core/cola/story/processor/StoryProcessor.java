@@ -15,10 +15,7 @@
  */
 package com.github.bmsantos.core.cola.story.processor;
 
-import static com.github.bmsantos.core.cola.report.ReportLoader.reportLoader;
-import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
-import static java.util.Arrays.asList;
-
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -28,18 +25,25 @@ import java.util.Map;
 
 import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.report.Report;
+import com.github.bmsantos.core.cola.story.annotations.ColaInjectable;
 import com.github.bmsantos.core.cola.story.annotations.DependsOn;
 import com.github.bmsantos.core.cola.story.annotations.Given;
 import com.github.bmsantos.core.cola.story.annotations.Then;
 import com.github.bmsantos.core.cola.story.annotations.When;
+import com.google.inject.Injector;
 import gherkin.deps.com.google.gson.Gson;
 import gherkin.deps.com.google.gson.reflect.TypeToken;
 import org.junit.runner.JUnitCore;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static com.github.bmsantos.core.cola.report.ReportLoader.reportLoader;
+import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
+import static com.google.inject.Guice.createInjector;
+import static java.util.Arrays.asList;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class StoryProcessor {
-    private static final Logger log = LoggerFactory.getLogger(StoryProcessor.class);
+    private static final Logger log = getLogger(StoryProcessor.class);
 
     private static final TypeToken<Map<String, String>> projectionType = new TypeToken<Map<String, String>>() {};
     private static final TypeToken<List<ReportDetails>> reportType = new TypeToken<List<ReportDetails>>() {};
@@ -48,6 +52,8 @@ public class StoryProcessor {
 
     private static final List<String> fillers = asList("And", "But");
 
+    private static final BindingsManager bindingsManager = new BindingsManager();
+
     public static void ignore(final String feature, final String scenario) {
         log.warn("Feature: " + feature + " - Scenario: " + scenario + " (@ignored)");
     }
@@ -55,8 +61,9 @@ public class StoryProcessor {
     public static void process(final String feature, final String scenario, final String story,
         final String projectionDetails, final String reports, final Object instance) throws Throwable {
 
+        boolean processedDependsOn = false;
         try {
-            invokeDependsOn(instance.getClass().getAnnotation(DependsOn.class));
+            processedDependsOn = invokeDependsOn(instance, instance.getClass().getAnnotation(DependsOn.class));
 
             log.info("Feature: " + feature + " - Scenario: " + scenario);
             if (projectionDetails != null && !projectionDetails.isEmpty()) {
@@ -84,7 +91,7 @@ public class StoryProcessor {
                         type = previousType;
                     } else {
                         logAndThrow("Invalid step: '" + line + "' - '" + type
-                          + "' step must be preceeded with a Given, When or Then step: ");
+                          + "' step must be preceded with a Given, When or Then step: ");
                     }
                 } else {
                     previousType = type;
@@ -102,7 +109,7 @@ public class StoryProcessor {
             for (int i = 0; i < calls.size(); i++) {
                 log.info("> " + lines[i]);
                 final MethodDetails details = calls.get(i);
-                invokeDependsOn(details.getMethod().getAnnotation(DependsOn.class));
+                processedDependsOn |= invokeDependsOn(instance, details.getMethod().getAnnotation(DependsOn.class));
                 details.getMethod().invoke(instance, details.getArguments());
             }
         } catch (final InvocationTargetException ex) {
@@ -111,6 +118,10 @@ public class StoryProcessor {
         } catch (final Throwable t) {
             processReports(reports, t);
             throw t;
+        } finally {
+            if (processedDependsOn) {
+                bindingsManager.reset();
+            }
         }
 
         processReports(reports, null);
@@ -179,11 +190,42 @@ public class StoryProcessor {
         }
     }
 
-    private final static void invokeDependsOn(final DependsOn dependsOn) {
-        if (!isSet(dependsOn)) return;
+    private final static boolean invokeDependsOn(final Object instance, final DependsOn dependsOn) throws Exception {
+        if (!isSet(dependsOn)) return false;
+        loadInjectables(instance);
         for (final Class test : dependsOn.value()) {
             new JUnitCore().run(test);
         }
+        return true;
     }
 
+    private final static void loadInjectables(final Object instance) throws Exception {
+        if (!bindingsManager.hasBindings()) {
+            for (final Field field : instance.getClass().getDeclaredFields()) {
+                final ColaInjectable injectable = field.getAnnotation(ColaInjectable.class);
+                if (injectable != null) {
+                    field.setAccessible(true);
+
+                    final NamedInstance ni = new NamedInstance();
+                    ni.name = injectable.value().isEmpty() ? field.getName() : injectable.value();
+                    ni.instance = field.get(instance);
+
+                    bindingsManager.addBinding(field.getType(), ni);
+                }
+            }
+        }
+    }
+
+    public final static Injector initColaInjector(final Object instance) {
+        if (bindingsManager.hasBindings()) {
+            try {
+                final Injector injector = createInjector(new ColaGuiceModule(bindingsManager.getBindings()));
+                injector.injectMembers(instance);
+                return injector;
+            } catch (final Exception e) {
+                log.error("@ColaInjected class has injection errors: " + e.getMessage());
+            }
+        }
+        return null;
+    }
 }
