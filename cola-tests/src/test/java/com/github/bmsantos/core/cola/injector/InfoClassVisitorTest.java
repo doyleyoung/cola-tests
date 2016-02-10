@@ -1,20 +1,20 @@
 package com.github.bmsantos.core.cola.injector;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
-import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
-
 import java.io.IOException;
 
+import com.github.bmsantos.core.cola.exceptions.InvalidFeature;
+import com.github.bmsantos.core.cola.exceptions.InvalidFeatureUri;
 import org.junit.Test;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
-import com.github.bmsantos.core.cola.exceptions.InvalidFeature;
-import com.github.bmsantos.core.cola.exceptions.InvalidFeatureUri;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
+import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 
 public class InfoClassVisitorTest {
 
@@ -186,6 +186,32 @@ public class InfoClassVisitorTest {
 
         // Then
         assertThat(uut.getIdeEnabledMethods().size(), is(0));
+    }
+
+    @Test
+    public void shouldBeColaInjected() throws IOException {
+        // Given
+        final ClassWriter cw = initClassWriterFor("test.utils.ColaInjectedTest");
+        uut = new InfoClassVisitor(cw, getClass().getClassLoader());
+
+        // When
+        cr.accept(uut, 0);
+
+        // Then
+        assertThat(uut.isColaInjected(), is(true));
+    }
+
+    @Test
+    public void shouldListColaInjectorFields() throws IOException {
+        // Given
+        final ClassWriter cw = initClassWriterFor("test.utils.ColaInjectorTest");
+        uut = new InfoClassVisitor(cw, getClass().getClassLoader());
+
+        // When
+        cr.accept(uut, 0);
+
+        // Then
+        assertThat(uut.getColaInjectorFields(), hasItems("i1", "i2"));
     }
 
     private ClassWriter initClassWriterFor(final String className) throws IOException {

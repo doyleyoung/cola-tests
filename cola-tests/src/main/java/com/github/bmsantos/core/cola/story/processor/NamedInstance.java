@@ -13,16 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.bmsantos.core.cola.instrument;
+package com.github.bmsantos.core.cola.story.processor;
 
-import java.lang.instrument.Instrumentation;
-
-public class ColaInstrument {
-    public static void premain(final String agentArgs, final Instrumentation instrumentation) {
-        instrumentation.addTransformer(new ColaTransformer());
-    }
-
-    public static void agentmain(final String agentArgs, final Instrumentation instrumentation) {
-        instrumentation.addTransformer(new ColaTransformer(), true);
-    }
+public class NamedInstance {
+    public String name;
+    public Object instance;
 }

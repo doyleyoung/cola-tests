@@ -56,6 +56,23 @@
                 <version>1.7.7</version>
             </dependency>
             <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.inject</groupId>
+                <artifactId>guice</artifactId>
+                <version>4.0</version>
+                <classifier>no_aop</classifier>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>aopalliance</artifactId>
+                        <groupId>aopalliance</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-library</artifactId>
                 <version>1.3</version>
