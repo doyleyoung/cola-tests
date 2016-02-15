@@ -129,46 +129,51 @@ public class StoryProcessor {
 
     private static MethodDetails findMethodWithAnnotation(final String type, final String step, final Method[] methods, final Map<String, String> projectionValues) {
         for (final Method method : methods) {
-            boolean foundMethod = false;
-            String annotationValue = null;
+            String annotationValue;
 
-            if (isGiven(type, step, method)) {
-                foundMethod = true;
-                annotationValue = method.getAnnotation(Given.class).value();
-            } else if (isWhen(type, step, method)) {
-                foundMethod = true;
-                annotationValue = method.getAnnotation(When.class).value();
-            } else if (isThen(type, step, method)) {
-                foundMethod = true;
-                annotationValue = method.getAnnotation(Then.class).value();
+            if (isSet(annotationValue = isGiven(type, step, method))) {
+            } else if (isSet(annotationValue = isWhen(type, step, method))) {
+            } else if (isSet(annotationValue = isThen(type, step, method))) {
             }
 
-            if (foundMethod) {
+            if (isSet(annotationValue)) {
                 return MethodDetails.build(method, step, projectionValues, annotationValue);
             }
         }
         return null;
     }
 
-    private static boolean isGiven(final String type, final String step, final Method method) {
-        return Given.class.getName().endsWith(type) && method.isAnnotationPresent(Given.class)
-            && (method.getAnnotation(Given.class).value().equals(step) ||
-                step.matches(method.getAnnotation(Given.class).value()) ||
-                step.matches(method.getAnnotation(Given.class).value().replaceAll("<(.+?)>", "(.*)")));
+    private static String isGiven(final String type, final String step, final Method method) {
+        if (Given.class.getName().endsWith(type) && method.isAnnotationPresent(Given.class)) {
+            return isSameStep(method.getAnnotation(Given.class).value(), step, method);
+        }
+        return null;
     }
 
-    private static boolean isWhen(final String type, final String step, final Method method) {
-        return When.class.getName().endsWith(type) && method.isAnnotationPresent(When.class)
-            && (method.getAnnotation(When.class).value().equals(step) ||
-                step.matches(method.getAnnotation(When.class).value()) ||
-                step.matches(method.getAnnotation(When.class).value().replaceAll("<(.+?)>", "(.*)")));
+    private static String isWhen(final String type, final String step, final Method method) {
+        if (When.class.getName().endsWith(type) && method.isAnnotationPresent(When.class)) {
+            return isSameStep(method.getAnnotation(When.class).value(), step, method);
+        }
+
+        return null;
     }
 
-    private static boolean isThen(final String type, final String step, final Method method) {
-        return Then.class.getName().endsWith(type) && method.isAnnotationPresent(Then.class)
-            && (method.getAnnotation(Then.class).value().equals(step) ||
-                step.matches(method.getAnnotation(Then.class).value()) ||
-                step.matches(method.getAnnotation(Then.class).value().replaceAll("<(.+?)>", "(.*)")));
+    private static String isThen(final String type, final String step, final Method method) {
+        if (Then.class.getName().endsWith(type) && method.isAnnotationPresent(Then.class)) {
+            return isSameStep(method.getAnnotation(Then.class).value(), step, method);
+        }
+        return null;
+    }
+
+    private static String isSameStep(final String stepValues[], final String step, final Method method) {
+        for (final String stepValue : stepValues) {
+            if (stepValue.equals(step) ||
+              step.matches(stepValue) ||
+              step.matches(stepValue.replaceAll("<(.+?)>", "(.*)"))) {
+                return stepValue;
+            }
+        }
+        return null;
     }
 
     private static void logAndThrow(final String message) {

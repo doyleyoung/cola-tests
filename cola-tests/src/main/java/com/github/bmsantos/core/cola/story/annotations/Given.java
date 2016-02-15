@@ -24,5 +24,5 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface Given {
-    public String value();
+    public String[] value();
 }
