@@ -28,6 +28,7 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.bmsantos.core.cola.exceptions.InvalidFeatureUri;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
@@ -73,7 +74,8 @@ public class ColaTransformer implements ClassFileTransformer {
             if (!info.getFeatures().isEmpty() || !info.getIdeEnabledMethods().isEmpty()) {
                 return writer.toByteArray();
             }
-        } catch (final InvalidFeature i) {
+        } catch (final InvalidFeature | InvalidFeatureUri i) {
+            System.err.println("Exception caught: " + i.getMessage());
             return injectErrorNotificationMethod(classfileBuffer, i);
         } catch (final Throwable t) {
             return classfileBuffer;
