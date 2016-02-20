@@ -15,7 +15,10 @@
  */
 package com.github.bmsantos.core.cola.formatter;
 
-import static java.lang.System.err;
+import java.util.List;
+
+import com.github.bmsantos.core.cola.exceptions.InvalidFeature;
+import com.github.bmsantos.core.cola.exceptions.InvalidFeatureUri;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.model.Background;
 import gherkin.formatter.model.Examples;
@@ -25,10 +28,8 @@ import gherkin.formatter.model.ScenarioOutline;
 import gherkin.formatter.model.Step;
 import gherkin.parser.Parser;
 
-import java.util.List;
-
-import com.github.bmsantos.core.cola.exceptions.InvalidFeature;
-import com.github.bmsantos.core.cola.exceptions.InvalidFeatureUri;
+import static com.github.bmsantos.core.cola.formatter.FeatureValidator.validate;
+import static java.lang.System.err;
 
 public class FeatureFormatter implements Formatter {
 
@@ -46,11 +47,10 @@ public class FeatureFormatter implements Formatter {
         }
 
         final FeatureFormatter formatter = new FeatureFormatter();
-        final Parser parser = new Parser(formatter, false);
 
-        parser.parse(feature, fromUri, 0);
+        new Parser(formatter, false).parse(feature, fromUri, 0);
 
-        return formatter.getFeature();
+        return validate(formatter.getFeature(), fromUri);
     }
 
     public FeatureDetails getFeature() {

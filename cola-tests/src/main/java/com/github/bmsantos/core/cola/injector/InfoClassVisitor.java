@@ -43,6 +43,7 @@ public class InfoClassVisitor extends ClassVisitor {
     private static final String IDE_ENABLER_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/IdeEnabler;";
     private static final String COLA_INJECTED_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/ColaInjected;";
     private static final String COLA_INJECTOR_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/ColaInjector;";
+    private static final String ANNOYING_CUCUMBER_URL = "See http://wiki.github.com/cucumber/gherkin/lexingerror for more information.";
 
     private final String[] fileExtensions = { ".feature", ".stories", ".story", ".gherkin", "" };
 
@@ -114,10 +115,12 @@ public class InfoClassVisitor extends ClassVisitor {
                                     if (contents.isEmpty()) {
                                         raiseInvalidFeatureUri(featureUri, "Empty feature.");
                                     }
-                                } catch (final NoSuchElementException e) {
+
+                                    features.add(FeatureFormatter.parse(contents, featureUri));
+                                } catch (final NoSuchElementException | LexingError e) {
                                     raiseInvalidFeatureUri(featureUri, e.getMessage());
                                 }
-                                features.add(FeatureFormatter.parse(contents, featureUri));
+
                             }
                         };
                     }
@@ -171,11 +174,12 @@ public class InfoClassVisitor extends ClassVisitor {
     }
 
     private void raiseInvalidFeature(final String fieldName, final String cause) {
-        throw new InvalidFeature("No features found in: " + className + "." + fieldName + " - Cause: " + cause);
+        throw new InvalidFeature("No features found in: " + className + "." + fieldName + " - Cause: " +
+          cause.replace(ANNOYING_CUCUMBER_URL, ""));
     }
 
     private void raiseInvalidFeatureUri(final String featureUri, final String cause) {
-        throw new InvalidFeatureUri(featureUri + " - Cause: " + cause);
+        throw new InvalidFeatureUri(featureUri + " - Cause: " + cause.replace(ANNOYING_CUCUMBER_URL, ""));
     }
 
     private FeatureDetails parseFeature(final String fieldName, final Object fieldValue) {
@@ -208,8 +212,11 @@ public class InfoClassVisitor extends ClassVisitor {
     }
 
     private String readFeatureContents(final InputStream input) {
-        try (Scanner scanner = new Scanner(input, UTF_8.name())) {
-            return scanner.useDelimiter("\\A").next();
+        try (final Scanner scanner = new Scanner(input, UTF_8.name())) {
+            if (scanner.hasNext()) {
+                return scanner.useDelimiter("\\A").next();
+            }
+            return "";
         }
     }
 }
