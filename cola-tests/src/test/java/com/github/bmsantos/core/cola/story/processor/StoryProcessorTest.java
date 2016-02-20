@@ -2,6 +2,7 @@ package com.github.bmsantos.core.cola.story.processor;
 
 import org.junit.Test;
 import test.utils.Story;
+import test.utils.StoryDependencies;
 import test.utils.StoryDependsOn;
 import uk.org.lidalia.slf4jtest.TestLogger;
 
@@ -51,6 +52,20 @@ public class StoryProcessorTest {
 
         // Then
         assertThat(story.wasCalled(), is(true));
-        assertThat(story.howOften(), is(2));
+        assertThat(story.howOften(), is(4));
+    }
+
+    @Test
+    public void shouldProcessDependencies() throws Throwable {
+        // Given
+        final StoryDependencies story = new StoryDependencies();
+        StoryDependencies.resetTimesCount();
+
+        // When
+        StoryProcessor.process(FEATURE, SCENARIO, story.getStory(), null, null, story);
+
+        // Then
+        assertThat(story.wasCalled(), is(true));
+        assertThat(story.howOften(), is(10));
     }
 }

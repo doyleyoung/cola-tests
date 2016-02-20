@@ -15,6 +15,7 @@
  */
 package com.github.bmsantos.core.cola.story.processor;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -26,6 +27,7 @@ import java.util.Map;
 import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.report.Report;
 import com.github.bmsantos.core.cola.story.annotations.ColaInjectable;
+import com.github.bmsantos.core.cola.story.annotations.Dependencies;
 import com.github.bmsantos.core.cola.story.annotations.DependsOn;
 import com.github.bmsantos.core.cola.story.annotations.Given;
 import com.github.bmsantos.core.cola.story.annotations.Then;
@@ -40,6 +42,7 @@ import static com.github.bmsantos.core.cola.report.ReportLoader.reportLoader;
 import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
 import static com.google.inject.Guice.createInjector;
 import static java.util.Arrays.asList;
+import static org.junit.runner.Request.method;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class StoryProcessor {
@@ -63,7 +66,7 @@ public class StoryProcessor {
 
         boolean processedDependsOn = false;
         try {
-            processedDependsOn = invokeDependsOn(instance, instance.getClass().getAnnotation(DependsOn.class));
+            processedDependsOn = invokeDependsOn(instance, getTestDependencies(instance.getClass()));
 
             log.info("Feature: " + feature + " - Scenario: " + scenario);
             if (projectionDetails != null && !projectionDetails.isEmpty()) {
@@ -109,7 +112,7 @@ public class StoryProcessor {
             for (int i = 0; i < calls.size(); i++) {
                 log.info("> " + lines[i]);
                 final MethodDetails details = calls.get(i);
-                processedDependsOn |= invokeDependsOn(instance, details.getMethod().getAnnotation(DependsOn.class));
+                processedDependsOn |= invokeDependsOn(instance, getTestDependencies(details.getMethod()));
                 details.getMethod().invoke(instance, details.getArguments());
             }
         } catch (final InvocationTargetException ex) {
@@ -195,11 +198,32 @@ public class StoryProcessor {
         }
     }
 
-    private final static boolean invokeDependsOn(final Object instance, final DependsOn dependsOn) throws Exception {
-        if (!isSet(dependsOn)) return false;
+    private final static List<DependsOn> getTestDependencies(final AnnotatedElement element) {
+        final List<DependsOn> dependencies = new ArrayList<>();
+        final DependsOn single = DependsOn.class.cast(element.getAnnotation(DependsOn.class));
+        if (isSet(single)) {
+            dependencies.add(single);
+        } else {
+            final Dependencies multiple = Dependencies.class.cast(element.getAnnotation(Dependencies.class));
+            if (isSet(multiple)) {
+                dependencies.addAll(asList(multiple.value()));
+            }
+        }
+        return dependencies;
+    }
+
+    private final static boolean invokeDependsOn(final Object instance, final List<DependsOn> dependencies) throws Exception {
+        if (!isSet(dependencies)) return false;
         loadInjectables(instance);
-        for (final Class test : dependsOn.value()) {
-            new JUnitCore().run(test);
+        for (final DependsOn dependsOn : dependencies) {
+            final Class test = dependsOn.value();
+            if (dependsOn.methods().length == 0) {
+                new JUnitCore().run(test);
+            } else {
+                for (final String method : dependsOn.methods()) {
+                    new JUnitCore().run(method(test, method));
+                }
+            }
         }
         return true;
     }
