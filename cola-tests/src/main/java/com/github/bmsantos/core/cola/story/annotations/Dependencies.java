@@ -15,16 +15,15 @@
  */
 package com.github.bmsantos.core.cola.story.annotations;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
 @Retention(RUNTIME)
 @Target({TYPE, METHOD})
-public @interface DependsOn {
-    Class<?> value();
-    String[] methods() default {};
+public @interface Dependencies {
+    DependsOn[] value();
 }
