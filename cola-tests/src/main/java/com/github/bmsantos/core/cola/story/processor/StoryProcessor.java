@@ -135,28 +135,30 @@ public class StoryProcessor {
             log.info("> " + steps[i]);
             final MethodDetails details = calls.get(i);
             processedDependsOn |= invokeDependsOn(instance, getTestDependencies(details.getMethod()));
-            invokePreSteps(details.getMethod(), instance, methods, projectionValues);
+            processedDependsOn |= invokePreSteps(details.getMethod(), instance, methods, projectionValues);
             details.getMethod().invoke(instance, details.getArguments());
-            invokePostSteps(details.getMethod(), instance, methods, projectionValues);
+            processedDependsOn |= invokePostSteps(details.getMethod(), instance, methods, projectionValues);
         }
 
         return processedDependsOn;
     }
 
-    private static void invokePreSteps(final Method method, final Object instance, final Method[] methods,
+    private static boolean invokePreSteps(final Method method, final Object instance, final Method[] methods,
                                        final  Map<String, String> projectionValues) throws Throwable {
         if (method.isAnnotationPresent(PreSteps.class)) {
             final String[] lines = method.getAnnotation(PreSteps.class).value();
-            invokeSteps(lines, instance, methods, projectionValues);
+            return invokeSteps(lines, instance, methods, projectionValues);
         }
+        return false;
     }
 
-    private static void invokePostSteps(final Method method, final Object instance, final Method[] methods,
+    private static boolean invokePostSteps(final Method method, final Object instance, final Method[] methods,
                                        final  Map<String, String> projectionValues) throws Throwable {
         if (method.isAnnotationPresent(PostSteps.class)) {
             final String[] lines = method.getAnnotation(PostSteps.class).value();
-            invokeSteps(lines, instance, methods, projectionValues);
+            return invokeSteps(lines, instance, methods, projectionValues);
         }
+        return false;
     }
 
     private static MethodDetails findMethodWithAnnotation(final String type, final String step, final Method[] methods, final Map<String, String> projectionValues) {
