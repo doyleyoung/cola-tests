@@ -6,6 +6,8 @@ import java.util.List;
 import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.report.Report;
 import com.github.bmsantos.core.cola.story.annotations.Given;
+import com.github.bmsantos.core.cola.story.annotations.PostSteps;
+import com.github.bmsantos.core.cola.story.annotations.PreSteps;
 import com.github.bmsantos.core.cola.story.annotations.Then;
 import com.github.bmsantos.core.cola.story.annotations.When;
 import gherkin.deps.com.google.gson.Gson;
@@ -44,6 +46,9 @@ public class StoryProcessorAnnotationTest {
         + "And the woman blinks to the man\n"
         + "Then the woman will blush\n"
         + "And the man will blush";
+
+    private final String preAndPostStory =
+        "When kissed\n";
 
     private final String exceptionStory =
         "Given a first method\n"
@@ -152,7 +157,18 @@ public class StoryProcessorAnnotationTest {
 
         // Then
         assertThat(instance.executionOrder, contains("givenAPerson", "givenAPerson", "whenBlinked", "whenBlinked",
-          "thenBabbiesAreBorn", "thenBabbiesAreBorn"));
+          "thenBabiesAreBorn", "thenBabiesAreBorn"));
+    }
+
+    @Test
+    public void shouldProcessPreAndPostSteps() throws Throwable {
+        // When
+        StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", preAndPostStory,
+          projectionValues, noReport, instance);
+
+        // Then
+        assertThat(instance.executionOrder, contains("givenAPerson", "givenAPerson", "whenKissed",
+          "thenBabiesAreBorn", "thenBabiesAreBorn"));
     }
 
     @Test
@@ -234,6 +250,13 @@ public class StoryProcessorAnnotationTest {
             executionOrder.add(currentThread().getStackTrace()[1].getMethodName());
         }
 
+        @PreSteps({ "Given a man", "Given a woman" })
+        @When("kissed")
+        @PostSteps({ "Then the man will blush", "Then the woman will blush" })
+        public void whenKissed() {
+            executionOrder.add(currentThread().getStackTrace()[1].getMethodName());
+        }
+
         @Then("the first method will execute")
         public void thenFirst() {
             wasThenCalled = true;
@@ -257,7 +280,7 @@ public class StoryProcessorAnnotationTest {
         }
 
         @Then({"the woman will blush", "the man will blush"})
-        public void thenBabbiesAreBorn() {
+        public void thenBabiesAreBorn() {
             executionOrder.add(currentThread().getStackTrace()[1].getMethodName());
         }
     }

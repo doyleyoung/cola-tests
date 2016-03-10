@@ -30,6 +30,8 @@ import com.github.bmsantos.core.cola.story.annotations.ColaInjectable;
 import com.github.bmsantos.core.cola.story.annotations.Dependencies;
 import com.github.bmsantos.core.cola.story.annotations.DependsOn;
 import com.github.bmsantos.core.cola.story.annotations.Given;
+import com.github.bmsantos.core.cola.story.annotations.PostSteps;
+import com.github.bmsantos.core.cola.story.annotations.PreSteps;
 import com.github.bmsantos.core.cola.story.annotations.Then;
 import com.github.bmsantos.core.cola.story.annotations.When;
 import com.google.inject.Injector;
@@ -81,40 +83,8 @@ public class StoryProcessor {
             final Method[] methods = instance.getClass().getMethods();
             final String[] lines = story.split(NEW_LINE);
 
-            final List<MethodDetails> calls = new ArrayList<>();
-            MethodDetails found;
-            String previousType = null;
-            for (final String line : lines) {
+            processedDependsOn |= invokeSteps(lines, instance, methods, projectionValues);
 
-                final int firstSpace = line.indexOf(" ");
-
-                String type = line.substring(0, firstSpace);
-                if (fillers.contains(type)) {
-                    if (previousType != null) {
-                        type = previousType;
-                    } else {
-                        logAndThrow("Invalid step: '" + line + "' - '" + type
-                          + "' step must be preceded with a Given, When or Then step: ");
-                    }
-                } else {
-                    previousType = type;
-                }
-
-                final String step = line.substring(firstSpace + 1);
-                found = findMethodWithAnnotation(type, step, methods, projectionValues);
-                if (found != null) {
-                    calls.add(found);
-                } else {
-                    logAndThrow("Failed to find step: " + line);
-                }
-            }
-
-            for (int i = 0; i < calls.size(); i++) {
-                log.info("> " + lines[i]);
-                final MethodDetails details = calls.get(i);
-                processedDependsOn |= invokeDependsOn(instance, getTestDependencies(details.getMethod()));
-                details.getMethod().invoke(instance, details.getArguments());
-            }
         } catch (final InvocationTargetException ex) {
             processReports(reports, ex.getCause());
             throw ex.getCause();
@@ -128,6 +98,67 @@ public class StoryProcessor {
         }
 
         processReports(reports, null);
+    }
+
+    final static boolean invokeSteps(final String[] steps, final Object instance, final Method[] methods,
+                                     final  Map<String, String> projectionValues) throws Throwable {
+
+        boolean processedDependsOn = false;
+        final List<MethodDetails> calls = new ArrayList<>();
+        MethodDetails found;
+        String previousType = null;
+
+        for (final String line : steps) {
+            final int firstSpace = line.indexOf(" ");
+            String type = line.substring(0, firstSpace);
+            if (fillers.contains(type)) {
+                if (previousType != null) {
+                    type = previousType;
+                } else {
+                    logAndThrow("Invalid step: '" + line + "' - '" + type
+                      + "' step must be preceded with a Given, When or Then step: ");
+                }
+            } else {
+                previousType = type;
+            }
+
+            final String step = line.substring(firstSpace + 1);
+            found = findMethodWithAnnotation(type, step, methods, projectionValues);
+            if (found != null) {
+                calls.add(found);
+            } else {
+                logAndThrow("Failed to find step: " + line);
+            }
+        }
+
+        for (int i = 0; i < calls.size(); i++) {
+            log.info("> " + steps[i]);
+            final MethodDetails details = calls.get(i);
+            processedDependsOn |= invokeDependsOn(instance, getTestDependencies(details.getMethod()));
+            processedDependsOn |= invokePreSteps(details.getMethod(), instance, methods, projectionValues);
+            details.getMethod().invoke(instance, details.getArguments());
+            processedDependsOn |= invokePostSteps(details.getMethod(), instance, methods, projectionValues);
+        }
+
+        return processedDependsOn;
+    }
+
+    private static boolean invokePreSteps(final Method method, final Object instance, final Method[] methods,
+                                       final  Map<String, String> projectionValues) throws Throwable {
+        if (method.isAnnotationPresent(PreSteps.class)) {
+            final String[] lines = method.getAnnotation(PreSteps.class).value();
+            return invokeSteps(lines, instance, methods, projectionValues);
+        }
+        return false;
+    }
+
+    private static boolean invokePostSteps(final Method method, final Object instance, final Method[] methods,
+                                       final  Map<String, String> projectionValues) throws Throwable {
+        if (method.isAnnotationPresent(PostSteps.class)) {
+            final String[] lines = method.getAnnotation(PostSteps.class).value();
+            return invokeSteps(lines, instance, methods, projectionValues);
+        }
+        return false;
     }
 
     private static MethodDetails findMethodWithAnnotation(final String type, final String step, final Method[] methods, final Map<String, String> projectionValues) {
