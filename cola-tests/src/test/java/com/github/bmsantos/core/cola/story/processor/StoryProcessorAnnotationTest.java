@@ -157,7 +157,7 @@ public class StoryProcessorAnnotationTest {
 
         // Then
         assertThat(instance.executionOrder, contains("givenAPerson", "givenAPerson", "whenBlinked", "whenBlinked",
-          "thenBabbiesAreBorn", "thenBabbiesAreBorn"));
+          "thenBabiesAreBorn", "thenBabiesAreBorn"));
     }
 
     @Test
@@ -168,7 +168,7 @@ public class StoryProcessorAnnotationTest {
 
         // Then
         assertThat(instance.executionOrder, contains("givenAPerson", "givenAPerson", "whenKissed",
-          "thenBabbiesAreBorn", "thenBabbiesAreBorn"));
+          "thenBabiesAreBorn", "thenBabiesAreBorn"));
     }
 
     @Test
@@ -280,7 +280,7 @@ public class StoryProcessorAnnotationTest {
         }
 
         @Then({"the woman will blush", "the man will blush"})
-        public void thenBabbiesAreBorn() {
+        public void thenBabiesAreBorn() {
             executionOrder.add(currentThread().getStackTrace()[1].getMethodName());
         }
     }
