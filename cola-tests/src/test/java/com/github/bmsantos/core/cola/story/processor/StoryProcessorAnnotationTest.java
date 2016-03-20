@@ -3,6 +3,7 @@ package com.github.bmsantos.core.cola.story.processor;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.bmsantos.core.cola.exceptions.ColaStoryException;
 import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.report.Report;
 import com.github.bmsantos.core.cola.story.annotations.Given;
@@ -189,7 +190,7 @@ public class StoryProcessorAnnotationTest {
         verify(report).report(reportDetails.getArguments(), null);
     }
 
-    @Test(expected = ComparisonFailure.class)
+    @Test(expected = ColaStoryException.class)
     public void shouldUnwrapTheException() throws Throwable {
         // When
         StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", exceptionStory,
