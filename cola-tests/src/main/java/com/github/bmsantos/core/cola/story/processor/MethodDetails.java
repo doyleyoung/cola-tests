@@ -29,14 +29,21 @@ import com.github.bmsantos.core.cola.story.annotations.Projection;
 
 public class MethodDetails {
 
+    private final String step;
     private final Method method;
     private final List<String> projections;
     private final Object[] arguments;
 
-    private MethodDetails(final Method method, final List<String> projections, final Object[] arguments) {
+    private MethodDetails(final String step, final Method method,
+                          final List<String> projections, final Object[] arguments) {
+        this.step = step;
         this.method = method;
         this.projections = projections;
         this.arguments = arguments;
+    }
+
+    public String getStep() {
+        return step;
     }
 
     public Method getMethod() {
@@ -162,7 +169,7 @@ public class MethodDetails {
         return null;
     }
 
-    public static MethodDetails build(final Method method, final String step,
+    public static MethodDetails build(final String type, final String step, final Method method,
         final Map<String, String> projectionValues, final String annotationValue) {
 
         final List<String> projections = prepareProjections(step);
@@ -172,6 +179,6 @@ public class MethodDetails {
         final Object[] arguments = prepareArguments(method, projections, projectionValues, assignments,
             assignmentValues, groups);
 
-        return new MethodDetails(method, projections, arguments);
+        return new MethodDetails(type + " " + step, method, projections, arguments);
     }
 }

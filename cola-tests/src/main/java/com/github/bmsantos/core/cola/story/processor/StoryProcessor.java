@@ -17,13 +17,14 @@ package com.github.bmsantos.core.cola.story.processor;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.github.bmsantos.core.cola.exceptions.ColaStepException;
+import com.github.bmsantos.core.cola.exceptions.ColaStoryException;
 import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.report.Report;
 import com.github.bmsantos.core.cola.story.annotations.ColaInjectable;
@@ -64,13 +65,15 @@ public class StoryProcessor {
     }
 
     public static void process(final String feature, final String scenario, final String story,
-        final String projectionDetails, final String reports, final Object instance) throws Throwable {
+                               final String projectionDetails, final String reports, final Object instance) throws Throwable {
+
+        final String featureScenario = "Feature: " + feature + " - Scenario: " + scenario;
 
         boolean processedDependsOn = false;
         try {
             processedDependsOn = invokeDependsOn(instance, getTestDependencies(instance.getClass()));
 
-            log.info("Feature: " + feature + " - Scenario: " + scenario);
+            log.info(featureScenario);
             if (projectionDetails != null && !projectionDetails.isEmpty()) {
                 log.info(projectionDetails);
             }
@@ -85,9 +88,9 @@ public class StoryProcessor {
 
             processedDependsOn |= invokeSteps(lines, instance, methods, projectionValues);
 
-        } catch (final InvocationTargetException ex) {
+        } catch (final ColaStepException ex) {
             processReports(reports, ex.getCause());
-            throw ex.getCause();
+            throw new ColaStoryException("\n\tError: " + ex.getMessage(), ex.getCause());
         } catch (final Throwable t) {
             processReports(reports, t);
             throw t;
@@ -101,11 +104,11 @@ public class StoryProcessor {
     }
 
     final static boolean invokeSteps(final String[] steps, final Object instance, final Method[] methods,
-                                     final  Map<String, String> projectionValues) throws Throwable {
+                                     final Map<String, String> projectionValues) throws Throwable {
 
         boolean processedDependsOn = false;
         final List<MethodDetails> calls = new ArrayList<>();
-        MethodDetails found;
+        MethodDetails found = null;
         String previousType = null;
 
         for (final String line : steps) {
@@ -115,36 +118,47 @@ public class StoryProcessor {
                 if (previousType != null) {
                     type = previousType;
                 } else {
-                    logAndThrow("Invalid step: '" + line + "' - '" + type
-                      + "' step must be preceded with a Given, When or Then step: ");
+                    logAndThrow("Invalid step '" + type +
+                      "' - Step must be preceded with a Given, When, Then, And or But keyword",
+                      line, projectionValues);
                 }
             } else {
                 previousType = type;
             }
 
             final String step = line.substring(firstSpace + 1);
-            found = findMethodWithAnnotation(type, step, methods, projectionValues);
+
+            try {
+                found = findMethodWithAnnotation(type, step, methods, projectionValues);
+            } catch (final Throwable t) {
+                logAndThrow("Failed to call step", line, projectionValues, t);
+            }
+
             if (found != null) {
                 calls.add(found);
             } else {
-                logAndThrow("Failed to find step: " + line);
+                logAndThrow("Failed to find step", line, projectionValues);
             }
         }
 
         for (int i = 0; i < calls.size(); i++) {
             log.info("> " + steps[i]);
             final MethodDetails details = calls.get(i);
-            processedDependsOn |= invokeDependsOn(instance, getTestDependencies(details.getMethod()));
-            processedDependsOn |= invokePreSteps(details.getMethod(), instance, methods, projectionValues);
-            details.getMethod().invoke(instance, details.getArguments());
-            processedDependsOn |= invokePostSteps(details.getMethod(), instance, methods, projectionValues);
+            try {
+                processedDependsOn |= invokeDependsOn(instance, getTestDependencies(details.getMethod()));
+                processedDependsOn |= invokePreSteps(details.getMethod(), instance, methods, projectionValues);
+                details.getMethod().invoke(instance, details.getArguments());
+                processedDependsOn |= invokePostSteps(details.getMethod(), instance, methods, projectionValues);
+            } catch (final Throwable t) {
+                logAndThrow("Failed step", details.getStep(), projectionValues, t);
+            }
         }
 
         return processedDependsOn;
     }
 
     private static boolean invokePreSteps(final Method method, final Object instance, final Method[] methods,
-                                       final  Map<String, String> projectionValues) throws Throwable {
+                                          final Map<String, String> projectionValues) throws Throwable {
         if (method.isAnnotationPresent(PreSteps.class)) {
             final String[] lines = method.getAnnotation(PreSteps.class).value();
             return invokeSteps(lines, instance, methods, projectionValues);
@@ -153,7 +167,7 @@ public class StoryProcessor {
     }
 
     private static boolean invokePostSteps(final Method method, final Object instance, final Method[] methods,
-                                       final  Map<String, String> projectionValues) throws Throwable {
+                                           final Map<String, String> projectionValues) throws Throwable {
         if (method.isAnnotationPresent(PostSteps.class)) {
             final String[] lines = method.getAnnotation(PostSteps.class).value();
             return invokeSteps(lines, instance, methods, projectionValues);
@@ -171,7 +185,7 @@ public class StoryProcessor {
             }
 
             if (isSet(annotationValue)) {
-                return MethodDetails.build(method, step, projectionValues, annotationValue);
+                return MethodDetails.build(type, step, method, projectionValues, annotationValue);
             }
         }
         return null;
@@ -179,14 +193,14 @@ public class StoryProcessor {
 
     private static String isGiven(final String type, final String step, final Method method) {
         if (Given.class.getName().endsWith(type) && method.isAnnotationPresent(Given.class)) {
-            return isSameStep(method.getAnnotation(Given.class).value(), step, method);
+            return isSameStep(method.getAnnotation(Given.class).value(), step);
         }
         return null;
     }
 
     private static String isWhen(final String type, final String step, final Method method) {
         if (When.class.getName().endsWith(type) && method.isAnnotationPresent(When.class)) {
-            return isSameStep(method.getAnnotation(When.class).value(), step, method);
+            return isSameStep(method.getAnnotation(When.class).value(), step);
         }
 
         return null;
@@ -194,12 +208,12 @@ public class StoryProcessor {
 
     private static String isThen(final String type, final String step, final Method method) {
         if (Then.class.getName().endsWith(type) && method.isAnnotationPresent(Then.class)) {
-            return isSameStep(method.getAnnotation(Then.class).value(), step, method);
+            return isSameStep(method.getAnnotation(Then.class).value(), step);
         }
         return null;
     }
 
-    private static String isSameStep(final String stepValues[], final String step, final Method method) {
+    private static String isSameStep(final String stepValues[], final String step) {
         for (final String stepValue : stepValues) {
             if (stepValue.equals(step) ||
               step.matches(stepValue) ||
@@ -210,9 +224,33 @@ public class StoryProcessor {
         return null;
     }
 
-    private static void logAndThrow(final String message) {
-        log.error(message);
-        throw new RuntimeException(message);
+    private static void logAndThrow(final String message, final String step,
+                                    final Map<String, String> projectionValues) {
+        logAndThrow(message, step, projectionValues, null);
+    }
+
+    private static void logAndThrow(final String message, final String step,
+                                    final Map<String, String> projectionValues, final Throwable t) {
+
+        final StringBuilder builder = new StringBuilder(message);
+        builder.append(": ").append(step);
+        if (!projectionValues.isEmpty()) {
+            builder.append(" with projection values: ").append(new Gson().toJson(projectionValues));
+        }
+
+        Throwable tt = null;
+        if (t != null) {
+            tt = t.getMessage() != null ? t : t.getCause();
+            builder.append("\n\tCause: ").append(tt.getMessage());
+        }
+
+        log.error(builder.toString());
+
+        if (tt != null) {
+            throw new ColaStepException(builder.toString(), tt);
+        }
+
+        throw new ColaStepException(builder.toString());
     }
 
     private static void processReports(final String reports, final Throwable error) {

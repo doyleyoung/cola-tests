@@ -20,12 +20,10 @@ import com.github.bmsantos.core.cola.story.annotations.Projection;
 
 public class MethodDetailsTest {
 
-    private static final String STEP = "Given <pints> beers per <alcoholics> developers";
-
+    private static final String TYPE = "Given";
+    private static final String STEP = "<pints> beers per <alcoholics> developers";
     private static final String STEP_GROUPS = "Given 50 beers per 12 developers";
-
     private static final String ANNOTATION_VALUE = "Given (\\d+) beers per (\\d+) developers";
-
     private static final String ASSIGNED_ANNOTATION_VALUE = "Given <pints> beers per <alcoholics> developers";
 
     private MethodDetails uut;
@@ -46,7 +44,7 @@ public class MethodDetailsTest {
     @Test
     public void shouldStoreMethod() {
         // Given
-        uut = MethodDetails.build(method, null, null, null);
+        uut = MethodDetails.build(null, null, method, null, null);
 
         // When
         final Method result = uut.getMethod();
@@ -56,9 +54,21 @@ public class MethodDetailsTest {
     }
 
     @Test
+    public void shouldStoreStepDefinition() {
+        // Given
+        uut = MethodDetails.build(TYPE, STEP, method, null, null);
+
+        // When
+        final String result = uut.getStep();
+
+        // Then
+        assertThat(result, equalTo(TYPE + " " + STEP));
+    }
+
+    @Test
     public void shouldPrepareStepProjections() {
         // Given
-        uut = MethodDetails.build(method, STEP, null, null);
+        uut = MethodDetails.build(null, STEP, method, null, null);
 
         // When
         final List<String> result = uut.getProjections();
@@ -74,7 +84,7 @@ public class MethodDetailsTest {
         projectionValues.put("pints", "100");
         projectionValues.put("alcoholics", "25");
 
-        uut = MethodDetails.build(method, STEP, projectionValues, null);
+        uut = MethodDetails.build(null, STEP, method, projectionValues, null);
 
         // When
         final Object[] result = uut.getArguments();
@@ -86,7 +96,7 @@ public class MethodDetailsTest {
     @Test
     public void shouldPrepareGroupArguments() {
         // Given
-        uut = MethodDetails.build(methodGroups, STEP_GROUPS, null, ANNOTATION_VALUE);
+        uut = MethodDetails.build(null, STEP_GROUPS, methodGroups, null, ANNOTATION_VALUE);
 
         // When
         final Object[] result = uut.getArguments();
@@ -98,7 +108,7 @@ public class MethodDetailsTest {
     @Test
     public void shouldPrepareAssignedArguments() {
         // Given
-        uut = MethodDetails.build(methodAssigned, STEP_GROUPS, null, ASSIGNED_ANNOTATION_VALUE);
+        uut = MethodDetails.build(null, STEP_GROUPS, methodAssigned, null, ASSIGNED_ANNOTATION_VALUE);
 
         // When
         final Object[] result = uut.getArguments();
