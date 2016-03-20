@@ -59,6 +59,10 @@ public class StoryProcessor {
 
     private static final BindingsManager bindingsManager = new BindingsManager();
 
+    private StoryProcessor() throws InstantiationException {
+        throw new InstantiationException("This class is not for instantiation");
+    }
+
     public static void ignore(final String feature, final String scenario) {
         log.warn("Feature: " + feature + " - Scenario: " + scenario + " (@ignored)");
     }
