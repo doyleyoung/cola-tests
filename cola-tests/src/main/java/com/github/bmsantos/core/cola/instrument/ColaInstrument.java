@@ -18,6 +18,11 @@ package com.github.bmsantos.core.cola.instrument;
 import java.lang.instrument.Instrumentation;
 
 public class ColaInstrument {
+
+    private ColaInstrument() throws InstantiationException {
+        throw new InstantiationException("This class is not for instantiation");
+    }
+
     public static void premain(final String agentArgs, final Instrumentation instrumentation) {
         instrumentation.addTransformer(new ColaTransformer());
     }

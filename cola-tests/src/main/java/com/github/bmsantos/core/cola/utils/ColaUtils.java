@@ -29,6 +29,10 @@ public final class ColaUtils {
     public static final String RESOURCE_SEPARATOR = "/";
     public static final String CLASS_EXT = ".class";
 
+    private ColaUtils() throws InstantiationException {
+        throw new InstantiationException("This class is not for instantiation");
+    }
+
     public static boolean isSet(final String value) {
         return value != null && !value.isEmpty();
     }

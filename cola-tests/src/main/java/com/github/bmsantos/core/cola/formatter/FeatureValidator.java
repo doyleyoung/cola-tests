@@ -6,6 +6,10 @@ import static com.github.bmsantos.core.cola.utils.ColaUtils.isSet;
 
 public class FeatureValidator {
 
+    private FeatureValidator() throws InstantiationException {
+        throw new InstantiationException("This class is not for instantiation");
+    }
+
     public static FeatureDetails validate(final FeatureDetails feature, final String fromUri) {
         validateFeature(feature, fromUri);
         return feature;

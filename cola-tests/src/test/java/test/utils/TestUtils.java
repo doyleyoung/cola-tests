@@ -23,6 +23,10 @@ public class TestUtils {
 
     private static final int WRITER_FLAGS = COMPUTE_FRAMES | COMPUTE_MAXS;
 
+    private TestUtils() throws InstantiationException {
+        throw new InstantiationException("This class is not for instantiation");
+    }
+
     public static List<FeatureDetails> loadFeatures(final String className) throws IOException {
         final ClassReader cr = new ClassReader(className);
         final ClassWriter cw = new ClassWriter(cr, WRITER_FLAGS);
