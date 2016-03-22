@@ -1,17 +1,23 @@
 package com.github.bmsantos.core.cola.story.processor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.github.bmsantos.core.cola.exceptions.ColaStoryException;
 import com.github.bmsantos.core.cola.formatter.ReportDetails;
 import com.github.bmsantos.core.cola.report.Report;
 import com.github.bmsantos.core.cola.story.annotations.Given;
+import com.github.bmsantos.core.cola.story.annotations.Group;
 import com.github.bmsantos.core.cola.story.annotations.PostSteps;
 import com.github.bmsantos.core.cola.story.annotations.PreSteps;
+import com.github.bmsantos.core.cola.story.annotations.Projection;
 import com.github.bmsantos.core.cola.story.annotations.Then;
 import com.github.bmsantos.core.cola.story.annotations.When;
+
 import gherkin.deps.com.google.gson.Gson;
+
 import org.junit.Before;
 import org.junit.ComparisonFailure;
 import org.junit.Test;
@@ -58,6 +64,14 @@ public class StoryProcessorAnnotationTest {
             + "And the second method is called\n"
             + "Then the first method will execute\n"
             + "But the second method assertion will throw an exception";
+
+    private final String aliasRegexProjectionStory =
+      "Given a man over 50\n"
+        + "And a woman over <age>\n"
+        + "When the man blinks to the woman\n"
+        + "And the woman blinks to the man\n"
+        + "Then the woman will blush\n"
+        + "And the man will blush";
 
     private final String noReport = "";
 
@@ -197,6 +211,21 @@ public class StoryProcessorAnnotationTest {
             projectionValues, noReport, instance);
     }
 
+    @Test
+    public void shouldProcessMixedRegexProjectionAliasedSteps() throws Throwable {
+        // Given
+        Map<String, String> projectionValuesMap = new HashMap<>();
+        projectionValuesMap.put("age", "40");
+        
+        // When
+        StoryProcessor.process("Feature: I'm a feature", "Scenario: Should Process Story", aliasRegexProjectionStory,
+            new Gson().toJson(projectionValuesMap), noReport, instance);
+
+        // Then
+        assertThat(instance.executionOrder, contains("givenAPersonOfACertainAge:50", "givenAPersonOfACertainAge:40", 
+            "whenBlinked", "whenBlinked", "thenBabiesAreBorn", "thenBabiesAreBorn"));
+    }
+
     private class TestClass {
 
         public boolean wasGivenCalled = false;
@@ -227,6 +256,11 @@ public class StoryProcessorAnnotationTest {
         @Given({"a man", "a woman"})
         public void givenAPerson() {
             executionOrder.add(currentThread().getStackTrace()[1].getMethodName());
+        }
+        
+        @Given({"a man over (\\d+)", "a woman over <age>"})
+        public void givenAPersonOfACertainAge(@Group(1) @Projection("age") Integer age) {
+            executionOrder.add(currentThread().getStackTrace()[1].getMethodName() + ":" + age);
         }
 
         @When("the first method is called")
