@@ -5,12 +5,12 @@
     <parent>
         <groupId>com.github.bmsantos</groupId>
         <artifactId>cola-tests-base</artifactId>
-        <version>0.5.1-SNAPSHOT</version>
+        <version>0.5.5</version>
         <relativePath>../cola-tests-base/pom.xml</relativePath>
     </parent>
 
     <artifactId>cola-tests</artifactId>
-    <version>0.5.1-SNAPSHOT</version>
+    <version>0.5.5</version>
     <packaging>jar</packaging>
 
     <name>cola-tests</name>
