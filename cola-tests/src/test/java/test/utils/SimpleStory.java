@@ -4,7 +4,7 @@ import com.github.bmsantos.core.cola.story.annotations.Then;
 import com.github.bmsantos.core.cola.story.annotations.When;
 import org.junit.Test;
 
-public class Story extends IdeEnablerTest {
+public class SimpleStory  {
     private final String story = "When A\n" + "Then B\n";
 
     private final String stories =
@@ -15,6 +15,15 @@ public class Story extends IdeEnablerTest {
     private boolean calledA = false;
     private boolean calledB = false;
 
+    public SimpleStory() {
+        init();
+    }
+
+    private void init() {
+        ++StoryDependsOn.timesCalled;
+        ++StoryDependencies.timesCalled;
+    }
+
     @When("A")
     public void whenA() {
         calledA = true;
@@ -23,6 +32,11 @@ public class Story extends IdeEnablerTest {
     @Then("B")
     public void thenB() {
         calledB = true;
+    }
+
+    @Test
+    public void dependenciesTest() {
+        ++StoryDependencies.timesCalled;
     }
 
     public String getStory() {

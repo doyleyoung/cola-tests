@@ -52,7 +52,7 @@ public class StoryProcessorTest {
 
         // Then
         assertThat(story.wasCalled(), is(true));
-        assertThat(story.howOften(), is(4));
+        assertThat(story.howOften(), is(2));
     }
 
     @Test
@@ -66,6 +66,6 @@ public class StoryProcessorTest {
 
         // Then
         assertThat(story.wasCalled(), is(true));
-        assertThat(story.howOften(), is(10));
+        assertThat(story.howOften(), is(8));
     }
 }

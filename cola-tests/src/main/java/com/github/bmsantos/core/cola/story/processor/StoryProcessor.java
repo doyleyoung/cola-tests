@@ -19,6 +19,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,8 @@ import com.google.inject.Injector;
 import gherkin.deps.com.google.gson.Gson;
 import gherkin.deps.com.google.gson.reflect.TypeToken;
 import org.junit.runner.JUnitCore;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 import org.slf4j.Logger;
 
 import static com.github.bmsantos.core.cola.report.ReportLoader.reportLoader;
@@ -288,14 +291,19 @@ public class StoryProcessor {
     private final static boolean invokeDependsOn(final Object instance, final List<DependsOn> dependencies) throws Exception {
         if (!isSet(dependencies)) return false;
         loadInjectables(instance);
+        Result results = null;
         for (final DependsOn dependsOn : dependencies) {
             final Class test = dependsOn.value();
             if (dependsOn.methods().length == 0) {
-                new JUnitCore().run(test);
+                results = new JUnitCore().run(test);
             } else {
                 for (final String method : dependsOn.methods()) {
-                    new JUnitCore().run(method(test, method));
+                    results = new JUnitCore().run(method(test, method));
                 }
+            }
+            if (results != null && !results.wasSuccessful()) {
+                final Failure failure = results.getFailures().get(0);
+                logAndThrow("Failed to execute test dependency", test.getName(), Collections.<String,String>emptyMap(), failure.getException());
             }
         }
         return true;

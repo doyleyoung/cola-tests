@@ -3,12 +3,12 @@ package test.utils;
 import com.github.bmsantos.core.cola.story.annotations.DependsOn;
 import com.github.bmsantos.core.cola.story.annotations.When;
 
-@DependsOn(Story.class)
-public class StoryDependsOn extends Story {
+@DependsOn(SimpleStory.class)
+public class StoryDependsOn extends SimpleStory {
     public static int timesCalled = 0;
 
     @When("A")
-    @DependsOn(Story.class)
+    @DependsOn(SimpleStory.class)
     public void whenA() {
         super.whenA();
     }
