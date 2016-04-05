@@ -267,18 +267,18 @@ public class ColaUtilsTest {
     }
 
     private String toOSPath(final String... parts) {
-        String result = parts[0];
+        StringBuilder result = new StringBuilder(parts[0]);
         for (int i = 1; i < parts.length; i++) {
-            result += separator + parts[i];
+            result.append(separator).append(parts[i]);
         }
-        return result;
+        return result.toString();
     }
 
     private String toBinary(final String... parts) {
-        String result = parts[0];
+        StringBuilder result = new StringBuilder(parts[0]);
         for (int i = 1; i < parts.length; i++) {
-            result += "." + parts[i];
+            result.append(".").append(parts[i]);
         }
-        return result;
+        return result.toString();
     }
 }
