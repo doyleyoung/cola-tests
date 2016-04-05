@@ -146,11 +146,11 @@ public class InjectorClassVisitor extends ClassVisitor {
     }
 
     private String buildStory(final List<Step> steps) {
-        String story = "";
+        StringBuilder story = new StringBuilder();
         for (final Step step : steps) {
-            story += step.getKeyword() + step.getName() + "\n";
+            story.append(step.getKeyword()).append(step.getName()).append("\n");
         }
-        return story;
+        return story.toString();
     }
 
     @SafeVarargs

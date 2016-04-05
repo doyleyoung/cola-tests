@@ -66,11 +66,11 @@ public final class ColaUtils {
     }
 
     public static String binaryToOsClass(final String binaryFormat) {
-        String result = binaryToOS(binaryFormat);
-        if (!isClassFile(result)) {
-            result += CLASS_EXT;
+        StringBuilder result = new StringBuilder(binaryToOS(binaryFormat));
+        if (!isClassFile(result.toString())) {
+            result.append(CLASS_EXT);
         }
-        return result;
+        return result.toString();
     }
 
     public static String binaryToResource(final String binaryFormat) {
@@ -78,11 +78,11 @@ public final class ColaUtils {
     }
 
     public static String binaryToResourceClass(final String binaryFormat) {
-        String result = binaryToResource(binaryFormat);
-        if (!isClassFile(result)) {
-            result += CLASS_EXT;
+        StringBuilder result = new StringBuilder(binaryToResource(binaryFormat));
+        if (!isClassFile(result.toString())) {
+            result.append(CLASS_EXT);
         }
-        return result;
+        return result.toString();
     }
 
     public static String resourceClassToResource(final String resourceClass) {
@@ -103,20 +103,20 @@ public final class ColaUtils {
 
     public static String join(final String separator, final List<String> list) {
         final Iterator<String> it = list.iterator();
-        String result = "";
+        StringBuilder result = new StringBuilder();
         while (it.hasNext()) {
-            result += it.next() + (it.hasNext() ? separator : "");
+            result.append(it.next()).append( it.hasNext() ? separator : "" );
         }
-        return result;
+        return result.toString();
     }
 
     public static String joinStrings(final String separator, final String... entries) {
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (final String entry : entries) {
             if (entry != null && !entry.isEmpty()) {
-                result += result.isEmpty() ? entry : separator + entry;
+                result.append(result.toString().isEmpty() ? entry : separator + entry);
             }
         }
-        return result;
+        return result.toString();
     }
 }
