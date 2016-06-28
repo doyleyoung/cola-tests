@@ -74,6 +74,19 @@ public class InfoClassVisitorTest {
     }
 
     @Test
+    public void shouldRetrieveAnnotatedClassFromSpecifiedPath() throws IOException {
+        // Given
+        final ClassWriter cw = initClassWriterFor("test.utils.DirBasedClassAnnotatedTest");
+        uut = new InfoClassVisitor(cw, getClass().getClassLoader());
+
+        // When
+        cr.accept(uut, 0);
+
+        // Then
+        assertThat(uut.getFeatures().isEmpty(), is(false));
+    }
+
+    @Test
     public void shouldRetrieveMultipleAnnotatedClass() throws IOException {
         // Given
         final ClassWriter cw = initClassWriterFor("test.utils.MultipleFilesClassAnnotatedTest");
