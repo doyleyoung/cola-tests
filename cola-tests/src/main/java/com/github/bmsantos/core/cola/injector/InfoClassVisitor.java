@@ -15,25 +15,24 @@
  */
 package com.github.bmsantos.core.cola.injector;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.objectweb.asm.Opcodes.ASM4;
-import gherkin.lexer.LexingError;
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import com.github.bmsantos.core.cola.exceptions.InvalidFeature;
+import com.github.bmsantos.core.cola.exceptions.InvalidFeatureUri;
+import com.github.bmsantos.core.cola.formatter.FeatureDetails;
+import com.github.bmsantos.core.cola.formatter.FeatureFormatter;
+import gherkin.lexer.LexingError;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
-import com.github.bmsantos.core.cola.exceptions.InvalidFeature;
-import com.github.bmsantos.core.cola.exceptions.InvalidFeatureUri;
-import com.github.bmsantos.core.cola.formatter.FeatureDetails;
-import com.github.bmsantos.core.cola.formatter.FeatureFormatter;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.objectweb.asm.Opcodes.ASM4;
 
 public class InfoClassVisitor extends ClassVisitor {
 
@@ -45,7 +44,7 @@ public class InfoClassVisitor extends ClassVisitor {
     private static final String COLA_INJECTOR_DESCRIPTOR = "Lcom/github/bmsantos/core/cola/story/annotations/ColaInjector;";
     private static final String ANNOYING_CUCUMBER_URL = "See http://wiki.github.com/cucumber/gherkin/lexingerror for more information.";
 
-    private final String[] fileExtensions = { ".feature", ".stories", ".story", ".gherkin", "" };
+    private final String[] fileExtensions = {".feature", ".stories", ".story", ".gherkin", ""};
 
     private final ClassLoader classLoader;
     private String className;
@@ -85,7 +84,7 @@ public class InfoClassVisitor extends ClassVisitor {
 
     @Override
     public void visit(final int version, final int access, final String name, final String signature,
-        final String superName, final String[] interfaces) {
+                      final String superName, final String[] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
         className = name;
     }
@@ -94,6 +93,10 @@ public class InfoClassVisitor extends ClassVisitor {
     public AnnotationVisitor visitAnnotation(final String descriptor, final boolean runtimeVisible) {
         if (descriptor.equals(FEATURES_DESCRIPTOR)) {
             return new AnnotationVisitor(ASM4, super.visitAnnotation(descriptor, runtimeVisible)) {
+
+                private String classpath = "";
+                private final List<String> filenames = new ArrayList<>();
+
                 @Override
                 public AnnotationVisitor visitArray(final String name) {
                     if (name.equals("value")) {
@@ -101,30 +104,52 @@ public class InfoClassVisitor extends ClassVisitor {
                             @Override
                             public void visit(final String name, final Object value) {
                                 super.visit(name, value);
-
-                                final String featureUri = className.substring(0, className.lastIndexOf("/") + 1) + value.toString();
-
-                                final InputStream in = findResource(featureUri);
-                                if (in == null) {
-                                    raiseInvalidFeatureUri(featureUri, "Unable to find feature file (.feature|.stories|.story|.gherkin)");
-                                }
-
-                                String contents = null;
-                                try {
-                                    contents = readFeatureContents(in).trim();
-                                    if (contents.isEmpty()) {
-                                        raiseInvalidFeatureUri(featureUri, "Empty feature.");
-                                    }
-
-                                    features.add(FeatureFormatter.parse(contents, featureUri));
-                                } catch (final NoSuchElementException | LexingError e) {
-                                    raiseInvalidFeatureUri(featureUri, e.getMessage());
-                                }
-
+                                filenames.add(value.toString());
                             }
                         };
                     }
                     return super.visitArray(name);
+                }
+
+                @Override
+                public void visit(final String name, final Object value) {
+                    if (name.equals("classpath")) {
+                        classpath = value.toString();
+                        if (!classpath.endsWith("/")) {
+                            classpath += "/";
+                        }
+                        if (classpath.startsWith("/")) {
+                            classpath = classpath.substring(1);
+                        }
+                    }
+                    super.visit(name, value);
+                }
+
+                @Override
+                public void visitEnd() {
+                    super.visitEnd();
+
+                    for (final String filename : filenames) {
+                        final String featureUri =
+                          (classpath.isEmpty() ? className.substring(0, className.lastIndexOf("/") + 1) : classpath) + filename;
+
+                        final InputStream in = findResource(featureUri);
+                        if (in == null) {
+                            raiseInvalidFeatureUri(featureUri, "Unable to find feature file (.feature|.stories|.story|.gherkin)");
+                        }
+
+                        String contents = null;
+                        try {
+                            contents = readFeatureContents(in).trim();
+                            if (contents.isEmpty()) {
+                                raiseInvalidFeatureUri(featureUri, "Empty feature.");
+                            }
+
+                            features.add(FeatureFormatter.parse(contents, featureUri));
+                        } catch (final NoSuchElementException | LexingError e) {
+                            raiseInvalidFeatureUri(featureUri, e.getMessage());
+                        }
+                    }
                 }
             };
         } else if (descriptor.equals(COLA_INJECTED_DESCRIPTOR)) {
