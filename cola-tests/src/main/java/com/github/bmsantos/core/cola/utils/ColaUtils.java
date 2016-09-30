@@ -66,11 +66,11 @@ public final class ColaUtils {
     }
 
     public static String binaryToOsClass(final String binaryFormat) {
-        String result = binaryToOS(binaryFormat);
-        if (!isClassFile(result)) {
-            result += CLASS_EXT;
+        StringBuilder result = new StringBuilder(binaryToOS(binaryFormat));
+        if (!isClassFile(result.toString())) {
+            result.append(CLASS_EXT);
         }
-        return result;
+        return result.toString();
     }
 
     public static String binaryToResource(final String binaryFormat) {
@@ -78,11 +78,11 @@ public final class ColaUtils {
     }
 
     public static String binaryToResourceClass(final String binaryFormat) {
-        String result = binaryToResource(binaryFormat);
-        if (!isClassFile(result)) {
-            result += CLASS_EXT;
+        StringBuilder result = new StringBuilder(binaryToResource(binaryFormat));
+        if (!isClassFile(result.toString())) {
+            result.append(CLASS_EXT);
         }
-        return result;
+        return result.toString();
     }
 
     public static String resourceClassToResource(final String resourceClass) {
